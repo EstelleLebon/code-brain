@@ -1,0 +1,59 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SessionManager = void 0;
+const crypto_1 = require("crypto");
+function makeSessionId() {
+    return (0, crypto_1.createHash)('sha256')
+        .update(String(Date.now()) + Math.random().toString(36))
+        .digest('hex')
+        .slice(0, 16);
+}
+class SessionManager {
+    sessions = new Map();
+    createSession() {
+        const id = makeSessionId();
+        const session = {
+            id,
+            startedAt: Date.now(),
+            entries: new Map(),
+            focusFiles: new Set(),
+        };
+        this.sessions.set(id, session);
+        return id;
+    }
+    getSession(id) {
+        return this.sessions.get(id);
+    }
+    recordAccess(sessionId, symbolId, filePath) {
+        const session = this.sessions.get(sessionId);
+        if (!session)
+            return;
+        const existing = session.entries.get(symbolId);
+        if (existing) {
+            existing.accessCount++;
+            existing.lastAccessedAt = Date.now();
+        }
+        else {
+            session.entries.set(symbolId, {
+                symbolId,
+                filePath,
+                accessCount: 1,
+                lastAccessedAt: Date.now(),
+            });
+        }
+        session.focusFiles.add(filePath);
+    }
+    getFocusedSymbols(sessionId, limit = 20) {
+        const session = this.sessions.get(sessionId);
+        if (!session)
+            return [];
+        return Array.from(session.entries.values())
+            .sort((a, b) => b.accessCount - a.accessCount || b.lastAccessedAt - a.lastAccessedAt)
+            .slice(0, limit);
+    }
+    clearSession(sessionId) {
+        this.sessions.delete(sessionId);
+    }
+}
+exports.SessionManager = SessionManager;
+//# sourceMappingURL=SessionContext.js.map

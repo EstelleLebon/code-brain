@@ -1,0 +1,1 @@
+{"version":3,"file":"DependencyImpactAnalyzer.d.ts","sourceRoot":"","sources":["../../src/invalidation/DependencyImpactAnalyzer.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,eAAe,EAAE,MAAM,8BAA8B,CAAC;AAE/D;;GAEG;AACH,qBAAa,wBAAwB;IACnC,OAAO,CAAC,KAAK,CAAkB;gBAEnB,KAAK,EAAE,eAAe;IAIlC;;;OAGG;IACH,WAAW,CAAC,gBAAgB,EAAE,MAAM,EAAE,GAAG,MAAM,EAAE;CAsBlD"}

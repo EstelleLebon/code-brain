@@ -1,0 +1,1 @@
+{"version":3,"file":"ast.d.ts","sourceRoot":"","sources":["../../src/parser/ast.ts"],"names":[],"mappings":"AAGA,OAAO,EAAE,UAAU,EAAoC,MAAM,mBAAmB,CAAC;AAwgBjF,wBAAgB,SAAS,CAAC,QAAQ,EAAE,MAAM,GAAG,UAAU,CAGtD;AAED,wBAAgB,WAAW,CAAC,QAAQ,EAAE,MAAM,EAAE,MAAM,EAAE,MAAM,GAAG,UAAU,CASxE;AAED,wBAAgB,eAAe,CAAC,QAAQ,EAAE,MAAM,GAAG,OAAO,CAGzD"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"InvalidationGraph.d.ts","sourceRoot":"","sources":["../../src/invalidation/InvalidationGraph.ts"],"names":[],"mappings":"AAAA;;GAEG;AACH,qBAAa,iBAAiB;IAC5B,OAAO,CAAC,UAAU,CAAuC;IAEzD,6DAA6D;IAC7D,KAAK,CAAC,UAAU,EAAE,MAAM,EAAE,SAAS,EAAE,MAAM,EAAE,GAAG,IAAI;IASpD,mEAAmE;IACnE,WAAW,CAAC,UAAU,EAAE,MAAM,GAAG,MAAM,EAAE;IAIzC,KAAK,IAAI,IAAI;CAGd"}

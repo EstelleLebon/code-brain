@@ -1,0 +1,25 @@
+{
+  "name": "code-brain",
+  "version": "1.0.0",
+  "description": "Semantic runtime core for software engineering",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "node --test dist/tests/*.test.js",
+    "example": "node dist/examples/index-repo.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.4.3",
+    "chokidar": "^3.6.0",
+    "tree-sitter": "^0.21.1",
+    "tree-sitter-typescript": "^0.21.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.8",
+    "@types/node": "^20.11.19",
+    "typescript": "^5.3.3"
+  }
+}

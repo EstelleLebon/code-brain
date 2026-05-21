@@ -1,0 +1,1 @@
+{"version":3,"file":"chunker.d.ts","sourceRoot":"","sources":["../../src/chunks/chunker.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,UAAU,EAAE,aAAa,EAAc,MAAM,mBAAmB,CAAC;AAqD1E,wBAAgB,WAAW,CAAC,GAAG,EAAE,UAAU,EAAE,SAAS,CAAC,EAAE,MAAM,GAAG,aAAa,CAc9E;AAED,wBAAgB,YAAY,CAC1B,OAAO,EAAE,UAAU,EAAE,EACrB,SAAS,CAAC,EAAE,GAAG,CAAC,MAAM,EAAE,MAAM,CAAC,GAC9B,aAAa,EAAE,CAEjB"}
