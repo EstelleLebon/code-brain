@@ -107,4 +107,8 @@ export type { StrategyRecord } from './strategic-memory/StrategyMemory.js';
 export { PlanningHeuristics } from './strategic-memory/PlanningHeuristics.js';
 export { PlanningMetrics } from './planning-metrics/PlanningMetrics.js';
 export type { PlanMetricRecord } from './planning-metrics/PlanningMetrics.js';
+export * from './stress-testing/index.js';
+export * from './reliability/index.js';
+export * from './reproducibility/index.js';
+export * from './chaos-engineering/index.js';
 //# sourceMappingURL=index.d.ts.map

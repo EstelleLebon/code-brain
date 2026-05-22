@@ -19,6 +19,15 @@ import { EventStore } from '../event-store/EventStore.js';
 import { type CognitiveSnapshot } from '../event-store/SnapshotManager.js';
 import { type ReplayResult } from '../event-store/ReplayEngine.js';
 import { type ExecutionTimeline } from '../event-store/ExecutionTimeline.js';
+import { FaultInjector } from '../stress-testing/FaultInjection.js';
+import { StressRunner, type StressReport } from '../stress-testing/StressRunner.js';
+import { StressScenario } from '../stress-testing/StressScenario.js';
+import { ReliabilityMetrics, type ReliabilitySnapshot } from '../reliability/ReliabilityMetrics.js';
+import { StabilityAnalyzer, type StabilityReport } from '../reliability/StabilityAnalyzer.js';
+import { RecoveryEvaluator } from '../reliability/RecoveryEvaluator.js';
+import { ChaosEngine } from '../chaos-engineering/ChaosEngine.js';
+import { type ChaosPolicyLevel } from '../chaos-engineering/ChaosPolicy.js';
+import { DeterminismValidator, type DeterminismReport } from '../reproducibility/DeterminismValidator.js';
 export declare class CodeBrain {
     private db;
     private embedder;
@@ -96,6 +105,18 @@ export declare class CodeBrain {
     createCognitiveSnapshot(executionId: string, metadata?: Record<string, unknown>): CognitiveSnapshot;
     restoreCognitiveSnapshot(snapshotId: string): CognitiveSnapshot | undefined;
     getExecutionTimeline(executionId: string): ExecutionTimeline;
+    readonly faultInjector: FaultInjector;
+    readonly stressRunner: StressRunner;
+    readonly reliabilityMetrics: ReliabilityMetrics;
+    readonly stabilityAnalyzer: StabilityAnalyzer;
+    readonly recoveryEvaluator: RecoveryEvaluator;
+    readonly chaosEngine: ChaosEngine;
+    readonly determinismValidator: DeterminismValidator;
+    runStressScenario(scenario: StressScenario): Promise<StressReport>;
+    runChaosTest(policyLevel?: ChaosPolicyLevel): void;
+    validateDeterminism(executionId: string): DeterminismReport;
+    getReliabilitySnapshot(): ReliabilitySnapshot;
+    getStabilityReport(): StabilityReport;
     close(): void;
 }
 //# sourceMappingURL=api.d.ts.map

@@ -37,6 +37,15 @@ import { EventStore } from '../event-store/EventStore.js';
 import { SnapshotManager, type CognitiveSnapshot, type SnapshotSource, type TrustSnapshot } from '../event-store/SnapshotManager.js';
 import { ReplayEngine, type ReplayResult } from '../event-store/ReplayEngine.js';
 import { TimelineBuilder, type ExecutionTimeline } from '../event-store/ExecutionTimeline.js';
+import { FaultInjector } from '../stress-testing/FaultInjection.js';
+import { StressRunner, type StressReport } from '../stress-testing/StressRunner.js';
+import { StressScenario } from '../stress-testing/StressScenario.js';
+import { ReliabilityMetrics, type ReliabilitySnapshot } from '../reliability/ReliabilityMetrics.js';
+import { StabilityAnalyzer, type StabilityReport } from '../reliability/StabilityAnalyzer.js';
+import { RecoveryEvaluator } from '../reliability/RecoveryEvaluator.js';
+import { ChaosEngine } from '../chaos-engineering/ChaosEngine.js';
+import { type ChaosPolicyLevel } from '../chaos-engineering/ChaosPolicy.js';
+import { DeterminismValidator, type DeterminismReport } from '../reproducibility/DeterminismValidator.js';
 
 export class CodeBrain {
   private db: DB;
@@ -336,7 +345,38 @@ export class CodeBrain {
     return this._timelineBuilder.build(events);
   }
 
+  // ── v4.5 Phase 2: Reliability Stress Infrastructure ─────────────────────────
+  readonly faultInjector = new FaultInjector();
+  readonly stressRunner = new StressRunner(this.faultInjector);
+  readonly reliabilityMetrics = new ReliabilityMetrics();
+  readonly stabilityAnalyzer = new StabilityAnalyzer();
+  readonly recoveryEvaluator = new RecoveryEvaluator();
+  readonly chaosEngine = new ChaosEngine(this.faultInjector, 'SAFE');
+  readonly determinismValidator = new DeterminismValidator();
+
+  async runStressScenario(scenario: StressScenario): Promise<StressReport> {
+    return this.stressRunner.runScenario(scenario);
+  }
+
+  runChaosTest(policyLevel: ChaosPolicyLevel = 'BALANCED'): void {
+    this.chaosEngine.applyPolicy(policyLevel);
+    this.chaosEngine.start();
+  }
+
+  validateDeterminism(executionId: string): DeterminismReport {
+    return this.determinismValidator.validateDeterminism(executionId);
+  }
+
+  getReliabilitySnapshot(): ReliabilitySnapshot {
+    return this.reliabilityMetrics.snapshot();
+  }
+
+  getStabilityReport(): StabilityReport {
+    return this.stabilityAnalyzer.analyze();
+  }
+
   close(): void {
+    this.chaosEngine.stop();
     this.watcher.stop();
     this.db.close();
   }

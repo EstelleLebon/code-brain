@@ -35,6 +35,13 @@ const EventStore_js_1 = require("../event-store/EventStore.js");
 const SnapshotManager_js_1 = require("../event-store/SnapshotManager.js");
 const ReplayEngine_js_1 = require("../event-store/ReplayEngine.js");
 const ExecutionTimeline_js_1 = require("../event-store/ExecutionTimeline.js");
+const FaultInjection_js_1 = require("../stress-testing/FaultInjection.js");
+const StressRunner_js_1 = require("../stress-testing/StressRunner.js");
+const ReliabilityMetrics_js_1 = require("../reliability/ReliabilityMetrics.js");
+const StabilityAnalyzer_js_1 = require("../reliability/StabilityAnalyzer.js");
+const RecoveryEvaluator_js_1 = require("../reliability/RecoveryEvaluator.js");
+const ChaosEngine_js_1 = require("../chaos-engineering/ChaosEngine.js");
+const DeterminismValidator_js_1 = require("../reproducibility/DeterminismValidator.js");
 class CodeBrain {
     db;
     embedder;
@@ -285,7 +292,32 @@ class CodeBrain {
         const events = this.eventStore.stream(executionId);
         return this._timelineBuilder.build(events);
     }
+    // ── v4.5 Phase 2: Reliability Stress Infrastructure ─────────────────────────
+    faultInjector = new FaultInjection_js_1.FaultInjector();
+    stressRunner = new StressRunner_js_1.StressRunner(this.faultInjector);
+    reliabilityMetrics = new ReliabilityMetrics_js_1.ReliabilityMetrics();
+    stabilityAnalyzer = new StabilityAnalyzer_js_1.StabilityAnalyzer();
+    recoveryEvaluator = new RecoveryEvaluator_js_1.RecoveryEvaluator();
+    chaosEngine = new ChaosEngine_js_1.ChaosEngine(this.faultInjector, 'SAFE');
+    determinismValidator = new DeterminismValidator_js_1.DeterminismValidator();
+    async runStressScenario(scenario) {
+        return this.stressRunner.runScenario(scenario);
+    }
+    runChaosTest(policyLevel = 'BALANCED') {
+        this.chaosEngine.applyPolicy(policyLevel);
+        this.chaosEngine.start();
+    }
+    validateDeterminism(executionId) {
+        return this.determinismValidator.validateDeterminism(executionId);
+    }
+    getReliabilitySnapshot() {
+        return this.reliabilityMetrics.snapshot();
+    }
+    getStabilityReport() {
+        return this.stabilityAnalyzer.analyze();
+    }
     close() {
+        this.chaosEngine.stop();
         this.watcher.stop();
         this.db.close();
     }

@@ -199,6 +199,11 @@ var PlanningHeuristics_js_1 = require("./strategic-memory/PlanningHeuristics.js"
 Object.defineProperty(exports, "PlanningHeuristics", { enumerable: true, get: function () { return PlanningHeuristics_js_1.PlanningHeuristics; } });
 var PlanningMetrics_js_1 = require("./planning-metrics/PlanningMetrics.js");
 Object.defineProperty(exports, "PlanningMetrics", { enumerable: true, get: function () { return PlanningMetrics_js_1.PlanningMetrics; } });
+// v4.5 Phase 2 — Reliability Stress Infrastructure
+__exportStar(require("./stress-testing/index.js"), exports);
+__exportStar(require("./reliability/index.js"), exports);
+__exportStar(require("./reproducibility/index.js"), exports);
+__exportStar(require("./chaos-engineering/index.js"), exports);
 // If run directly (node dist/index.js), print help
 if (require.main === module) {
     console.log(`

@@ -166,6 +166,12 @@ export { PlanningHeuristics } from './strategic-memory/PlanningHeuristics.js';
 export { PlanningMetrics } from './planning-metrics/PlanningMetrics.js';
 export type { PlanMetricRecord } from './planning-metrics/PlanningMetrics.js';
 
+// v4.5 Phase 2 — Reliability Stress Infrastructure
+export * from './stress-testing/index.js';
+export * from './reliability/index.js';
+export * from './reproducibility/index.js';
+export * from './chaos-engineering/index.js';
+
 // If run directly (node dist/index.js), print help
 if (require.main === module) {
   console.log(`
