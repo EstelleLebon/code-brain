@@ -50,4 +50,18 @@ export * from './failure-memory/index.js';
 export { RuntimeAwareRiskAssessor } from './risk/RuntimeAwareRiskAssessor.js';
 export type { RuntimeRiskContext, RuntimeAwareRiskAssessment } from './risk/RuntimeAwareRiskAssessor.js';
 export * from './runtime-replay/index.js';
+export { isTruthLevelAtLeast, type RetrievalFilteringStats, type FilteredRetrievalResult } from './retrieval/retrieval.js';
+export { ReplayLogStore } from './persistence/replay/ReplayLogStore.js';
+export { RuntimeReplayStore } from './persistence/replay/RuntimeReplayStore.js';
+export { SemanticReplayStore, type SemanticReplayRecord } from './persistence/replay/SemanticReplayStore.js';
+export { SessionStore } from './persistence/sessions/SessionStore.js';
+export { FailureMemoryStore } from './persistence/failure-memory/FailureMemoryStore.js';
+export { CalibrationStore, type CalibrationRecord } from './persistence/calibration/CalibrationStore.js';
+export { ConsolidationEngine, type ConsolidationResult } from './consolidation/ConsolidationEngine.js';
+export { MemoryCompactor, type CompactionResult } from './consolidation/MemoryCompactor.js';
+export { summarizeCluster, type SemanticSummary } from './consolidation/SemanticSummarizer.js';
+export { computeDecayScore, type RetrievalDecayScore, type DecayInput } from './consolidation/RetrievalDecay.js';
+export { RuntimeLearningEngine, type LearningResult } from './learning/RuntimeLearningEngine.js';
+export { FailureLearning, type FailureLearningResult } from './learning/FailureLearning.js';
+export { SuccessPatternMemory, type SuccessPattern } from './learning/SuccessPatternMemory.js';
 //# sourceMappingURL=index.d.ts.map

@@ -11,8 +11,26 @@ import { SessionManager } from '../session/SessionContext.js';
 import { applySessionBias } from '../session/SessionBias.js';
 import { RetrievalValidator } from './validation/RetrievalValidator.js';
 
+export interface RetrievalFilteringStats {
+  totalBeforeFiltering: number;
+  filteredStale: number;
+  filteredContradictions: number;
+  totalAfterFiltering: number;
+}
+
+export interface FilteredRetrievalResult {
+  results: RetrievalResult[];
+  filtering: RetrievalFilteringStats;
+}
+
 export interface RetrievalOptions {
   sessionId?: string;
+  minTruthLevel?: TruthLevel;
+}
+
+/** Returns true if `current` is at least as good as `required` (lower ordinal = better). */
+export function isTruthLevelAtLeast(current: TruthLevel, required: TruthLevel): boolean {
+  return current <= required;
 }
 
 
@@ -108,7 +126,7 @@ export class Retrieval {
         chunkCount: entropy.chunkCount,
       });
 
-      // Validation
+      // Validation + active filtering
       const chunksWithFilePath = finalResults.map(r => ({
         ...r.chunk,
         filePath: r.trace.source,
@@ -121,8 +139,9 @@ export class Retrieval {
         warnings: validationResult.warnings,
       });
 
-      this.telemetry.metric('retrieval.results', finalResults.length, { query: query.slice(0, 50) });
-      return finalResults;
+      const { results: filtered } = this.filterResults(finalResults, validationResult.staleArtifacts, validationResult.contradictions, options.minTruthLevel);
+      this.telemetry.metric('retrieval.results', filtered.length, { query: query.slice(0, 50) });
+      return filtered;
     });
   }
 
@@ -215,9 +234,7 @@ export class Retrieval {
         chunkCount: entropy.chunkCount,
       });
 
-      const chunks = allResults.map(r => r.chunk);
-
-      // Validation
+      // Validation + active filtering
       const chunksWithFilePath = allResults.map(r => ({
         ...r.chunk,
         filePath: r.trace.source,
@@ -230,12 +247,60 @@ export class Retrieval {
         warnings: validationResult.warnings,
       });
 
-      return { symbols: allSymbols, chunks, expandedIds, results: allResults };
+      const { results: filteredResults } = this.filterResults(allResults, validationResult.staleArtifacts, validationResult.contradictions, options.minTruthLevel);
+      const chunks = filteredResults.map(r => r.chunk);
+
+      return { symbols: allSymbols, chunks, expandedIds, results: filteredResults };
     });
   }
 
   getSessionManager(): SessionManager {
     return this.sessionManager;
+  }
+
+  private filterResults(
+    results: RetrievalResult[],
+    staleIds: string[],
+    contradictionMessages: string[],
+    minTruthLevel?: TruthLevel,
+  ): FilteredRetrievalResult {
+    const staleSet = new Set(staleIds);
+    // Extract symbolIds involved in contradictions from validator messages
+    const contradictionSymbolIds = new Set<string>();
+    for (const msg of contradictionMessages) {
+      const match = msg.match(/Symbol (\S+) appears/);
+      if (match) contradictionSymbolIds.add(match[1]!);
+    }
+
+    let filteredStale = 0;
+    let filteredContradictions = 0;
+    const filtered: RetrievalResult[] = [];
+
+    for (const r of results) {
+      if (staleSet.has(r.chunk.id)) {
+        filteredStale++;
+        continue;
+      }
+      if (contradictionSymbolIds.has(r.chunk.symbolId)) {
+        filteredContradictions++;
+        continue;
+      }
+      if (minTruthLevel !== undefined && !isTruthLevelAtLeast(r.chunk.truthLevel ?? TruthLevel.STRUCTURAL, minTruthLevel)) {
+        filteredStale++; // count under stale for simplicity — still excluded
+        continue;
+      }
+      filtered.push(r);
+    }
+
+    return {
+      results: filtered,
+      filtering: {
+        totalBeforeFiltering: results.length,
+        filteredStale,
+        filteredContradictions,
+        totalAfterFiltering: filtered.length,
+      },
+    };
   }
 
   private getChunkById(chunkId: string): SemanticChunk | undefined {

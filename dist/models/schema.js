@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MIGRATIONS = exports.CREATE_TABLES_SQL = exports.SCHEMA_VERSION = void 0;
 // Schema version and migration tracking
-exports.SCHEMA_VERSION = 3;
+exports.SCHEMA_VERSION = 4;
 exports.CREATE_TABLES_SQL = `
   CREATE TABLE IF NOT EXISTS files (
     path TEXT PRIMARY KEY,
@@ -89,6 +89,70 @@ exports.MIGRATIONS = [
       ALTER TABLE claims ADD COLUMN version INTEGER DEFAULT 1;
       ALTER TABLE claims ADD COLUMN invalidated_at INTEGER;
       ALTER TABLE claims ADD COLUMN derived_from TEXT;
+    `,
+    },
+    // Version 4: persistent replay logs, sessions, failure patterns, calibration records
+    {
+        version: 4,
+        sql: `
+      CREATE TABLE IF NOT EXISTS replay_events (
+        id TEXT PRIMARY KEY,
+        operation_id TEXT NOT NULL,
+        event_type TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        timestamp INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_replay_events_op ON replay_events(operation_id);
+      CREATE INDEX IF NOT EXISTS idx_replay_events_ts ON replay_events(timestamp);
+
+      CREATE TABLE IF NOT EXISTS semantic_replay_events (
+        id TEXT PRIMARY KEY,
+        operation_id TEXT NOT NULL,
+        transformation_type TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        timestamp INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_semantic_replay_op ON semantic_replay_events(operation_id);
+
+      CREATE TABLE IF NOT EXISTS runtime_replay_events (
+        id TEXT PRIMARY KEY,
+        operation_id TEXT NOT NULL,
+        outcome_id TEXT,
+        caused_rollback INTEGER NOT NULL DEFAULT 0,
+        payload TEXT NOT NULL,
+        timestamp INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_runtime_replay_op ON runtime_replay_events(operation_id);
+
+      CREATE TABLE IF NOT EXISTS sessions (
+        session_id TEXT PRIMARY KEY,
+        created_at INTEGER NOT NULL,
+        last_access INTEGER NOT NULL,
+        payload TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_sessions_access ON sessions(last_access);
+
+      CREATE TABLE IF NOT EXISTS failure_patterns (
+        id TEXT PRIMARY KEY,
+        operation_type TEXT NOT NULL,
+        structural_context TEXT NOT NULL,
+        runtime_consequences TEXT NOT NULL,
+        frequency INTEGER NOT NULL DEFAULT 1,
+        severity REAL NOT NULL DEFAULT 0.5,
+        last_seen INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_failure_patterns_type ON failure_patterns(operation_type);
+
+      CREATE TABLE IF NOT EXISTS calibration_records (
+        id TEXT PRIMARY KEY,
+        operation_type TEXT NOT NULL,
+        predicted_risk REAL NOT NULL,
+        observed_risk REAL NOT NULL,
+        calibration_delta REAL NOT NULL,
+        timestamp INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_calibration_type ON calibration_records(operation_type);
+      CREATE INDEX IF NOT EXISTS idx_calibration_ts ON calibration_records(timestamp);
     `,
     },
 ];

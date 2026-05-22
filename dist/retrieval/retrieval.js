@@ -1,11 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Retrieval = void 0;
+exports.isTruthLevelAtLeast = isTruthLevelAtLeast;
 const index_js_1 = require("../types/index.js");
 const entropy_js_1 = require("./entropy.js");
 const SessionContext_js_1 = require("../session/SessionContext.js");
 const SessionBias_js_1 = require("../session/SessionBias.js");
 const RetrievalValidator_js_1 = require("./validation/RetrievalValidator.js");
+/** Returns true if `current` is at least as good as `required` (lower ordinal = better). */
+function isTruthLevelAtLeast(current, required) {
+    return current <= required;
+}
 class Retrieval {
     db;
     embedder;
@@ -93,7 +98,7 @@ class Retrieval {
                 signalNoiseRatio: entropy.signalNoiseRatio,
                 chunkCount: entropy.chunkCount,
             });
-            // Validation
+            // Validation + active filtering
             const chunksWithFilePath = finalResults.map(r => ({
                 ...r.chunk,
                 filePath: r.trace.source,
@@ -105,8 +110,9 @@ class Retrieval {
                 contradictions: validationResult.contradictions,
                 warnings: validationResult.warnings,
             });
-            this.telemetry.metric('retrieval.results', finalResults.length, { query: query.slice(0, 50) });
-            return finalResults;
+            const { results: filtered } = this.filterResults(finalResults, validationResult.staleArtifacts, validationResult.contradictions, options.minTruthLevel);
+            this.telemetry.metric('retrieval.results', filtered.length, { query: query.slice(0, 50) });
+            return filtered;
         });
     }
     getSymbol(name) {
@@ -189,8 +195,7 @@ class Retrieval {
                 signalNoiseRatio: entropy.signalNoiseRatio,
                 chunkCount: entropy.chunkCount,
             });
-            const chunks = allResults.map(r => r.chunk);
-            // Validation
+            // Validation + active filtering
             const chunksWithFilePath = allResults.map(r => ({
                 ...r.chunk,
                 filePath: r.trace.source,
@@ -202,11 +207,50 @@ class Retrieval {
                 contradictions: validationResult.contradictions,
                 warnings: validationResult.warnings,
             });
-            return { symbols: allSymbols, chunks, expandedIds, results: allResults };
+            const { results: filteredResults } = this.filterResults(allResults, validationResult.staleArtifacts, validationResult.contradictions, options.minTruthLevel);
+            const chunks = filteredResults.map(r => r.chunk);
+            return { symbols: allSymbols, chunks, expandedIds, results: filteredResults };
         });
     }
     getSessionManager() {
         return this.sessionManager;
+    }
+    filterResults(results, staleIds, contradictionMessages, minTruthLevel) {
+        const staleSet = new Set(staleIds);
+        // Extract symbolIds involved in contradictions from validator messages
+        const contradictionSymbolIds = new Set();
+        for (const msg of contradictionMessages) {
+            const match = msg.match(/Symbol (\S+) appears/);
+            if (match)
+                contradictionSymbolIds.add(match[1]);
+        }
+        let filteredStale = 0;
+        let filteredContradictions = 0;
+        const filtered = [];
+        for (const r of results) {
+            if (staleSet.has(r.chunk.id)) {
+                filteredStale++;
+                continue;
+            }
+            if (contradictionSymbolIds.has(r.chunk.symbolId)) {
+                filteredContradictions++;
+                continue;
+            }
+            if (minTruthLevel !== undefined && !isTruthLevelAtLeast(r.chunk.truthLevel ?? index_js_1.TruthLevel.STRUCTURAL, minTruthLevel)) {
+                filteredStale++; // count under stale for simplicity — still excluded
+                continue;
+            }
+            filtered.push(r);
+        }
+        return {
+            results: filtered,
+            filtering: {
+                totalBeforeFiltering: results.length,
+                filteredStale,
+                filteredContradictions,
+                totalAfterFiltering: filtered.length,
+            },
+        };
     }
     getChunkById(chunkId) {
         const chunks = this.db.getAllChunks();
