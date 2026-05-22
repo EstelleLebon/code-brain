@@ -20,4 +20,12 @@ export type { InvalidationEvent, InvalidationResult } from './invalidation/Inval
 export { ContradictionDetector } from './contradictions/ContradictionDetector.js';
 export type { Contradiction, ContradictionReport, ContradictionKind, ContradictionSeverity } from './contradictions/types.js';
 export { computeEntropyMetrics } from './retrieval/entropy.js';
+export { TransactionCoordinator, CognitiveTransaction, RollbackManager } from './transactions/index.js';
+export type { TransactionResult, TransactionOperation, RollbackRecord } from './transactions/index.js';
+export { ReplayLog } from './replay/index.js';
+export type { CognitiveReplayEvent, ReplayEventType } from './replay/index.js';
+export { RetrievalValidator } from './retrieval/validation/index.js';
+export type { RetrievalValidationResult } from './retrieval/validation/index.js';
+export { SemanticIR } from './semantic-ir/index.js';
+export type { SemanticOperation, SemanticTransformation, SemanticOperationType } from './semantic-ir/index.js';
 //# sourceMappingURL=index.d.ts.map

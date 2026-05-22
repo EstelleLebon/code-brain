@@ -9,6 +9,7 @@ import { Telemetry } from '../telemetry/telemetry.js';
 import { computeEntropyMetrics } from './entropy.js';
 import { SessionManager } from '../session/SessionContext.js';
 import { applySessionBias } from '../session/SessionBias.js';
+import { RetrievalValidator } from './validation/RetrievalValidator.js';
 
 export interface RetrievalOptions {
   sessionId?: string;
@@ -21,6 +22,7 @@ export class Retrieval {
   private graph: DependencyGraph;
   private telemetry: Telemetry;
   private sessionManager: SessionManager;
+  private validator: RetrievalValidator;
 
   constructor(db: DB, embedder: Embedder, graph: DependencyGraph, telemetry: Telemetry, sessionManager?: SessionManager) {
     this.db = db;
@@ -28,6 +30,7 @@ export class Retrieval {
     this.graph = graph;
     this.telemetry = telemetry;
     this.sessionManager = sessionManager ?? new SessionManager();
+    this.validator = new RetrievalValidator();
   }
 
   findRelevant(query: string, limit = 10, options: RetrievalOptions = {}): RetrievalResult[] {
@@ -103,6 +106,19 @@ export class Retrieval {
         diversityScore: entropy.diversityScore,
         signalNoiseRatio: entropy.signalNoiseRatio,
         chunkCount: entropy.chunkCount,
+      });
+
+      // Validation
+      const chunksWithFilePath = finalResults.map(r => ({
+        ...r.chunk,
+        filePath: r.trace.source,
+      }));
+      const validationResult = this.validator.validate(chunksWithFilePath);
+      this.telemetry.log('info', 'retrieval.validation', {
+        valid: validationResult.valid,
+        staleArtifacts: validationResult.staleArtifacts,
+        contradictions: validationResult.contradictions,
+        warnings: validationResult.warnings,
       });
 
       this.telemetry.metric('retrieval.results', finalResults.length, { query: query.slice(0, 50) });
@@ -200,6 +216,19 @@ export class Retrieval {
       });
 
       const chunks = allResults.map(r => r.chunk);
+
+      // Validation
+      const chunksWithFilePath = allResults.map(r => ({
+        ...r.chunk,
+        filePath: r.trace.source,
+      }));
+      const validationResult = this.validator.validate(chunksWithFilePath);
+      this.telemetry.log('info', 'retrieval.validation', {
+        valid: validationResult.valid,
+        staleArtifacts: validationResult.staleArtifacts,
+        contradictions: validationResult.contradictions,
+        warnings: validationResult.warnings,
+      });
 
       return { symbols: allSymbols, chunks, expandedIds, results: allResults };
     });

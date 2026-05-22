@@ -13,6 +13,7 @@ export declare class Retrieval {
     private graph;
     private telemetry;
     private sessionManager;
+    private validator;
     constructor(db: DB, embedder: Embedder, graph: DependencyGraph, telemetry: Telemetry, sessionManager?: SessionManager);
     findRelevant(query: string, limit?: number, options?: RetrievalOptions): RetrievalResult[];
     getSymbol(name: string): SymbolNode | null;

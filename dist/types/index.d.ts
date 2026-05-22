@@ -160,4 +160,19 @@ export declare const CodeBrainConfigSchema: z.ZodObject<{
     telemetry?: boolean | undefined;
 }>;
 export type CodeBrainConfig = z.infer<typeof CodeBrainConfigSchema>;
+export interface VersionedArtifact {
+    id: string;
+    version: number;
+    createdAt: number;
+    invalidatedAt?: number;
+    derivedFrom?: string[];
+}
+export interface CognitiveUpdateResult {
+    invalidatedArtifacts: number;
+    recomputedArtifacts: number;
+    propagationDepth: number;
+    durationMs: number;
+    committed: boolean;
+    transactionId: string;
+}
 //# sourceMappingURL=index.d.ts.map

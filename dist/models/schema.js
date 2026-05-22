@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MIGRATIONS = exports.CREATE_TABLES_SQL = exports.SCHEMA_VERSION = void 0;
 // Schema version and migration tracking
-exports.SCHEMA_VERSION = 2;
+exports.SCHEMA_VERSION = 3;
 exports.CREATE_TABLES_SQL = `
   CREATE TABLE IF NOT EXISTS files (
     path TEXT PRIMARY KEY,
@@ -77,6 +77,18 @@ exports.MIGRATIONS = [
         sql: `
       ALTER TABLE claims ADD COLUMN truth_level INTEGER NOT NULL DEFAULT 1;
       ALTER TABLE chunks ADD COLUMN truth_level INTEGER NOT NULL DEFAULT 0;
+    `,
+    },
+    // Version 3: add versioning columns to chunks and claims
+    {
+        version: 3,
+        sql: `
+      ALTER TABLE chunks ADD COLUMN version INTEGER DEFAULT 1;
+      ALTER TABLE chunks ADD COLUMN invalidated_at INTEGER;
+      ALTER TABLE chunks ADD COLUMN derived_from TEXT;
+      ALTER TABLE claims ADD COLUMN version INTEGER DEFAULT 1;
+      ALTER TABLE claims ADD COLUMN invalidated_at INTEGER;
+      ALTER TABLE claims ADD COLUMN derived_from TEXT;
     `,
     },
 ];

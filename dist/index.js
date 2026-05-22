@@ -1,7 +1,7 @@
 "use strict";
 // Main entry point and public API exports
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.computeEntropyMetrics = exports.ContradictionDetector = exports.InvalidationEngine = exports.applySessionBias = exports.SessionManager = exports.chunkSymbols = exports.chunkSymbol = exports.makeContentHash = exports.makeSymbolId = exports.extractEdges = exports.extractSymbols = exports.isSupportedFile = exports.parseSource = exports.parseFile = exports.Telemetry = exports.Watcher = exports.Retrieval = exports.Indexer = exports.ClaimsEngine = exports.DependencyGraph = exports.Embedder = exports.DB = exports.TruthLevel = exports.CodeBrain = void 0;
+exports.SemanticIR = exports.RetrievalValidator = exports.ReplayLog = exports.RollbackManager = exports.CognitiveTransaction = exports.TransactionCoordinator = exports.computeEntropyMetrics = exports.ContradictionDetector = exports.InvalidationEngine = exports.applySessionBias = exports.SessionManager = exports.chunkSymbols = exports.chunkSymbol = exports.makeContentHash = exports.makeSymbolId = exports.extractEdges = exports.extractSymbols = exports.isSupportedFile = exports.parseSource = exports.parseFile = exports.Telemetry = exports.Watcher = exports.Retrieval = exports.Indexer = exports.ClaimsEngine = exports.DependencyGraph = exports.Embedder = exports.DB = exports.TruthLevel = exports.CodeBrain = void 0;
 var api_js_1 = require("./api/api.js");
 Object.defineProperty(exports, "CodeBrain", { enumerable: true, get: function () { return api_js_1.CodeBrain; } });
 var index_js_1 = require("./types/index.js");
@@ -44,6 +44,16 @@ var ContradictionDetector_js_1 = require("./contradictions/ContradictionDetector
 Object.defineProperty(exports, "ContradictionDetector", { enumerable: true, get: function () { return ContradictionDetector_js_1.ContradictionDetector; } });
 var entropy_js_1 = require("./retrieval/entropy.js");
 Object.defineProperty(exports, "computeEntropyMetrics", { enumerable: true, get: function () { return entropy_js_1.computeEntropyMetrics; } });
+var index_js_2 = require("./transactions/index.js");
+Object.defineProperty(exports, "TransactionCoordinator", { enumerable: true, get: function () { return index_js_2.TransactionCoordinator; } });
+Object.defineProperty(exports, "CognitiveTransaction", { enumerable: true, get: function () { return index_js_2.CognitiveTransaction; } });
+Object.defineProperty(exports, "RollbackManager", { enumerable: true, get: function () { return index_js_2.RollbackManager; } });
+var index_js_3 = require("./replay/index.js");
+Object.defineProperty(exports, "ReplayLog", { enumerable: true, get: function () { return index_js_3.ReplayLog; } });
+var index_js_4 = require("./retrieval/validation/index.js");
+Object.defineProperty(exports, "RetrievalValidator", { enumerable: true, get: function () { return index_js_4.RetrievalValidator; } });
+var index_js_5 = require("./semantic-ir/index.js");
+Object.defineProperty(exports, "SemanticIR", { enumerable: true, get: function () { return index_js_5.SemanticIR; } });
 // If run directly (node dist/index.js), print help
 if (require.main === module) {
     console.log(`

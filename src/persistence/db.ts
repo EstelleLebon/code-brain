@@ -219,20 +219,25 @@ export class DB {
   // ── Chunks ────────────────────────────────────────────────────────────────
 
   insertChunk(chunk: SemanticChunk): void {
+    const existing = this.db.prepare('SELECT version FROM chunks WHERE id = ?').get(chunk.id) as { version: number } | undefined;
+    const version = existing ? existing.version + 1 : 1;
     this.db.prepare(`
-      INSERT OR REPLACE INTO chunks (id, symbol_id, content, summary, hash, truth_level)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(chunk.id, chunk.symbolId, chunk.content, chunk.summary ?? null, chunk.hash, chunk.truthLevel);
+      INSERT OR REPLACE INTO chunks (id, symbol_id, content, summary, hash, truth_level, version)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(chunk.id, chunk.symbolId, chunk.content, chunk.summary ?? null, chunk.hash, chunk.truthLevel, version);
   }
 
   insertChunksBatch(chunks: SemanticChunk[]): void {
+    const getVersion = this.db.prepare('SELECT version FROM chunks WHERE id = ?');
     const stmt = this.db.prepare(`
-      INSERT OR REPLACE INTO chunks (id, symbol_id, content, summary, hash, truth_level)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT OR REPLACE INTO chunks (id, symbol_id, content, summary, hash, truth_level, version)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
     const tx = this.db.transaction((cs: SemanticChunk[]) => {
       for (const c of cs) {
-        stmt.run(c.id, c.symbolId, c.content, c.summary ?? null, c.hash, c.truthLevel);
+        const existing = getVersion.get(c.id) as { version: number } | undefined;
+        const version = existing ? existing.version + 1 : 1;
+        stmt.run(c.id, c.symbolId, c.content, c.summary ?? null, c.hash, c.truthLevel, version);
       }
     });
     tx(chunks);
@@ -349,20 +354,25 @@ export class DB {
   // ── Claims ────────────────────────────────────────────────────────────────
 
   insertClaim(claim: Claim): void {
+    const existing = this.db.prepare('SELECT version FROM claims WHERE id = ?').get(claim.id) as { version: number } | undefined;
+    const version = existing ? existing.version + 1 : 1;
     this.db.prepare(`
-      INSERT OR REPLACE INTO claims (id, symbol_id, claim, confidence, source_hash, truth_level)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(claim.id, claim.symbolId, claim.claim, claim.confidence, claim.sourceHash, claim.truthLevel);
+      INSERT OR REPLACE INTO claims (id, symbol_id, claim, confidence, source_hash, truth_level, version)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(claim.id, claim.symbolId, claim.claim, claim.confidence, claim.sourceHash, claim.truthLevel, version);
   }
 
   insertClaimsBatch(claims: Claim[]): void {
+    const getVersion = this.db.prepare('SELECT version FROM claims WHERE id = ?');
     const stmt = this.db.prepare(`
-      INSERT OR REPLACE INTO claims (id, symbol_id, claim, confidence, source_hash, truth_level)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT OR REPLACE INTO claims (id, symbol_id, claim, confidence, source_hash, truth_level, version)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `);
     const tx = this.db.transaction((cs: Claim[]) => {
       for (const c of cs) {
-        stmt.run(c.id, c.symbolId, c.claim, c.confidence, c.sourceHash, c.truthLevel);
+        const existing = getVersion.get(c.id) as { version: number } | undefined;
+        const version = existing ? existing.version + 1 : 1;
+        stmt.run(c.id, c.symbolId, c.claim, c.confidence, c.sourceHash, c.truthLevel, version);
       }
     });
     tx(claims);
