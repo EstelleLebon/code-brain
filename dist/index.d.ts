@@ -28,4 +28,18 @@ export { RetrievalValidator } from './retrieval/validation/index.js';
 export type { RetrievalValidationResult } from './retrieval/validation/index.js';
 export { SemanticIR } from './semantic-ir/index.js';
 export type { SemanticOperation, SemanticTransformation, SemanticOperationType } from './semantic-ir/index.js';
+export { ASTTransformer, ASTSerializer, TransformationEngine } from './ast-runtime/index.js';
+export type { ASTMutation, FileMutations, TransformResult, EngineContext, SerializedOutput } from './ast-runtime/index.js';
+export { ValidationPipeline } from './validation/index.js';
+export type { ValidationResult, ValidationCheck, ValidationCheckResult, ValidationContext } from './validation/index.js';
+export { RiskAssessmentEngine } from './risk/index.js';
+export type { RiskAssessment, RiskLevel } from './risk/index.js';
+export { TrustEvaluator, DEFAULT_TRUST_POLICY, CONSERVATIVE_TRUST_POLICY, PERMISSIVE_TRUST_POLICY } from './trust/index.js';
+export type { TrustPolicy, TrustDecision, ApprovalMode } from './trust/index.js';
+export { SemanticDiffEngine } from './semantic-diff/index.js';
+export type { SemanticDiff, OperationDiff, ImpactSummary } from './semantic-diff/index.js';
+export { SemanticReplayLog } from './semantic-replay/index.js';
+export type { SemanticReplayEvent, SemanticReplayFilter } from './semantic-replay/index.js';
+export { SemanticExecutor, OperationRegistry, createExecutionContext } from './semantic-execution/index.js';
+export type { ExecutionContext, ExecutionPlan, ExecutionStep, ExecutionResult, OperationHandler } from './semantic-execution/index.js';
 //# sourceMappingURL=index.d.ts.map

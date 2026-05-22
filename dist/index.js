@@ -1,7 +1,7 @@
 "use strict";
 // Main entry point and public API exports
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SemanticIR = exports.RetrievalValidator = exports.ReplayLog = exports.RollbackManager = exports.CognitiveTransaction = exports.TransactionCoordinator = exports.computeEntropyMetrics = exports.ContradictionDetector = exports.InvalidationEngine = exports.applySessionBias = exports.SessionManager = exports.chunkSymbols = exports.chunkSymbol = exports.makeContentHash = exports.makeSymbolId = exports.extractEdges = exports.extractSymbols = exports.isSupportedFile = exports.parseSource = exports.parseFile = exports.Telemetry = exports.Watcher = exports.Retrieval = exports.Indexer = exports.ClaimsEngine = exports.DependencyGraph = exports.Embedder = exports.DB = exports.TruthLevel = exports.CodeBrain = void 0;
+exports.createExecutionContext = exports.OperationRegistry = exports.SemanticExecutor = exports.SemanticReplayLog = exports.SemanticDiffEngine = exports.PERMISSIVE_TRUST_POLICY = exports.CONSERVATIVE_TRUST_POLICY = exports.DEFAULT_TRUST_POLICY = exports.TrustEvaluator = exports.RiskAssessmentEngine = exports.ValidationPipeline = exports.TransformationEngine = exports.ASTSerializer = exports.ASTTransformer = exports.SemanticIR = exports.RetrievalValidator = exports.ReplayLog = exports.RollbackManager = exports.CognitiveTransaction = exports.TransactionCoordinator = exports.computeEntropyMetrics = exports.ContradictionDetector = exports.InvalidationEngine = exports.applySessionBias = exports.SessionManager = exports.chunkSymbols = exports.chunkSymbol = exports.makeContentHash = exports.makeSymbolId = exports.extractEdges = exports.extractSymbols = exports.isSupportedFile = exports.parseSource = exports.parseFile = exports.Telemetry = exports.Watcher = exports.Retrieval = exports.Indexer = exports.ClaimsEngine = exports.DependencyGraph = exports.Embedder = exports.DB = exports.TruthLevel = exports.CodeBrain = void 0;
 var api_js_1 = require("./api/api.js");
 Object.defineProperty(exports, "CodeBrain", { enumerable: true, get: function () { return api_js_1.CodeBrain; } });
 var index_js_1 = require("./types/index.js");
@@ -54,6 +54,28 @@ var index_js_4 = require("./retrieval/validation/index.js");
 Object.defineProperty(exports, "RetrievalValidator", { enumerable: true, get: function () { return index_js_4.RetrievalValidator; } });
 var index_js_5 = require("./semantic-ir/index.js");
 Object.defineProperty(exports, "SemanticIR", { enumerable: true, get: function () { return index_js_5.SemanticIR; } });
+// v2.0 — Semantic Execution Phase
+var index_js_6 = require("./ast-runtime/index.js");
+Object.defineProperty(exports, "ASTTransformer", { enumerable: true, get: function () { return index_js_6.ASTTransformer; } });
+Object.defineProperty(exports, "ASTSerializer", { enumerable: true, get: function () { return index_js_6.ASTSerializer; } });
+Object.defineProperty(exports, "TransformationEngine", { enumerable: true, get: function () { return index_js_6.TransformationEngine; } });
+var index_js_7 = require("./validation/index.js");
+Object.defineProperty(exports, "ValidationPipeline", { enumerable: true, get: function () { return index_js_7.ValidationPipeline; } });
+var index_js_8 = require("./risk/index.js");
+Object.defineProperty(exports, "RiskAssessmentEngine", { enumerable: true, get: function () { return index_js_8.RiskAssessmentEngine; } });
+var index_js_9 = require("./trust/index.js");
+Object.defineProperty(exports, "TrustEvaluator", { enumerable: true, get: function () { return index_js_9.TrustEvaluator; } });
+Object.defineProperty(exports, "DEFAULT_TRUST_POLICY", { enumerable: true, get: function () { return index_js_9.DEFAULT_TRUST_POLICY; } });
+Object.defineProperty(exports, "CONSERVATIVE_TRUST_POLICY", { enumerable: true, get: function () { return index_js_9.CONSERVATIVE_TRUST_POLICY; } });
+Object.defineProperty(exports, "PERMISSIVE_TRUST_POLICY", { enumerable: true, get: function () { return index_js_9.PERMISSIVE_TRUST_POLICY; } });
+var index_js_10 = require("./semantic-diff/index.js");
+Object.defineProperty(exports, "SemanticDiffEngine", { enumerable: true, get: function () { return index_js_10.SemanticDiffEngine; } });
+var index_js_11 = require("./semantic-replay/index.js");
+Object.defineProperty(exports, "SemanticReplayLog", { enumerable: true, get: function () { return index_js_11.SemanticReplayLog; } });
+var index_js_12 = require("./semantic-execution/index.js");
+Object.defineProperty(exports, "SemanticExecutor", { enumerable: true, get: function () { return index_js_12.SemanticExecutor; } });
+Object.defineProperty(exports, "OperationRegistry", { enumerable: true, get: function () { return index_js_12.OperationRegistry; } });
+Object.defineProperty(exports, "createExecutionContext", { enumerable: true, get: function () { return index_js_12.createExecutionContext; } });
 // If run directly (node dist/index.js), print help
 if (require.main === module) {
     console.log(`

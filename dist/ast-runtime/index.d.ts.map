@@ -1,0 +1,1 @@
+{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../src/ast-runtime/index.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,WAAW,EAAE,aAAa,EAAE,MAAM,kBAAkB,CAAC;AAC9D,OAAO,EAAE,cAAc,EAAE,eAAe,EAAE,MAAM,qBAAqB,CAAC;AACtE,OAAO,EAAE,oBAAoB,EAAE,aAAa,EAAE,MAAM,2BAA2B,CAAC;AAChF,OAAO,EAAE,aAAa,EAAE,gBAAgB,EAAE,MAAM,oBAAoB,CAAC"}
