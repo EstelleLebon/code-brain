@@ -46,6 +46,17 @@ import { RecoveryEvaluator } from '../reliability/RecoveryEvaluator.js';
 import { ChaosEngine } from '../chaos-engineering/ChaosEngine.js';
 import { type ChaosPolicyLevel } from '../chaos-engineering/ChaosPolicy.js';
 import { DeterminismValidator, type DeterminismReport } from '../reproducibility/DeterminismValidator.js';
+import { DistributedEventBus } from '../distributed/DistributedEventBus.js';
+import { CognitiveNode, type NodeCapabilities } from '../distributed/CognitiveNode.js';
+import { NodeRegistry } from '../distributed/NodeRegistry.js';
+import { DistributedPlanner } from '../distributed-planning/DistributedPlanner.js';
+import { ConsensusEngine, type ConsensusProposal } from '../distributed-planning/ConsensusEngine.js';
+export type { ConsensusResult } from '../distributed-planning/ConsensusEngine.js';
+import { DistributedExecutor, type DistributedExecution } from '../distributed-execution/DistributedExecutor.js';
+import { MemoryReplication, type ReplicatedMemoryEntry } from '../distributed-memory/MemoryReplication.js';
+import { NetworkPartitionSimulator } from '../network-simulation/NetworkPartitionSimulator.js';
+import { SplitBrainDetector } from '../distributed-reliability/SplitBrainDetector.js';
+import { DistributedReliabilityMetrics } from '../distributed-reliability/DistributedReliabilityMetrics.js';
 
 export class CodeBrain {
   private db: DB;
@@ -373,6 +384,51 @@ export class CodeBrain {
 
   getStabilityReport(): StabilityReport {
     return this.stabilityAnalyzer.analyze();
+  }
+
+  // ── v5.0: Distributed Cognitive Orchestration ───────────────────────────────
+  readonly distributedBus = new DistributedEventBus();
+  readonly nodeRegistry = new NodeRegistry();
+  readonly distributedPlanner = new DistributedPlanner(this.nodeRegistry);
+  readonly consensusEngine = new ConsensusEngine(this.distributedBus);
+  readonly distributedExecutor = new DistributedExecutor(this.nodeRegistry, this.distributedPlanner, this.distributedBus, this.consensusEngine);
+  readonly memoryReplication = new MemoryReplication(this.distributedBus);
+  readonly networkSimulator = new NetworkPartitionSimulator(this.distributedBus, this.nodeRegistry);
+  readonly splitBrainDetector = new SplitBrainDetector(this.distributedBus);
+  readonly distributedReliabilityMetrics = new DistributedReliabilityMetrics();
+
+  createNode(nodeId: string, capabilities?: Partial<NodeCapabilities>): CognitiveNode {
+    const caps: NodeCapabilities = {
+      canPlan: true,
+      canExecute: true,
+      canReplicate: true,
+      canVote: true,
+      maxConcurrentGoals: 5,
+      supportedOperationTypes: ['default'],
+      ...capabilities,
+    };
+    return new CognitiveNode({ nodeId, capabilities: caps, bus: this.distributedBus });
+  }
+
+  registerNode(node: CognitiveNode): void {
+    this.nodeRegistry.register(node);
+    this.distributedBus.publish({ type: 'node_joined', nodeId: node.nodeId }, node.nodeId);
+  }
+
+  executeDistributedGoal(goal: Goal, plan: ExecutionPlan): DistributedExecution {
+    return this.distributedExecutor.executeDistributedGoal(goal, plan);
+  }
+
+  simulatePartition(nodeId: string): string {
+    return this.networkSimulator.partitionNode(nodeId);
+  }
+
+  runConsensusVote(proposal: ConsensusProposal): void {
+    this.consensusEngine.propose(proposal);
+  }
+
+  replicateMemory(entry: ReplicatedMemoryEntry, targetNodeId: string): void {
+    this.memoryReplication.replicate(entry, targetNodeId);
   }
 
   close(): void {
