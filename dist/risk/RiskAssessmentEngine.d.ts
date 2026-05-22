@@ -5,6 +5,7 @@ export interface RiskAssessment {
     level: RiskLevel;
     reasons: string[];
 }
+export declare function scoreToLevel(score: number): RiskLevel;
 export declare class RiskAssessmentEngine {
     assess(operation: SemanticOperation, context?: {
         affectedFileCount?: number;

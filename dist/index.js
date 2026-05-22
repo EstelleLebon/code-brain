@@ -1,7 +1,21 @@
 "use strict";
 // Main entry point and public API exports
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createExecutionContext = exports.OperationRegistry = exports.SemanticExecutor = exports.SemanticReplayLog = exports.SemanticDiffEngine = exports.PERMISSIVE_TRUST_POLICY = exports.CONSERVATIVE_TRUST_POLICY = exports.DEFAULT_TRUST_POLICY = exports.TrustEvaluator = exports.RiskAssessmentEngine = exports.ValidationPipeline = exports.TransformationEngine = exports.ASTSerializer = exports.ASTTransformer = exports.SemanticIR = exports.RetrievalValidator = exports.ReplayLog = exports.RollbackManager = exports.CognitiveTransaction = exports.TransactionCoordinator = exports.computeEntropyMetrics = exports.ContradictionDetector = exports.InvalidationEngine = exports.applySessionBias = exports.SessionManager = exports.chunkSymbols = exports.chunkSymbol = exports.makeContentHash = exports.makeSymbolId = exports.extractEdges = exports.extractSymbols = exports.isSupportedFile = exports.parseSource = exports.parseFile = exports.Telemetry = exports.Watcher = exports.Retrieval = exports.Indexer = exports.ClaimsEngine = exports.DependencyGraph = exports.Embedder = exports.DB = exports.TruthLevel = exports.CodeBrain = void 0;
+exports.RuntimeAwareRiskAssessor = exports.createExecutionContext = exports.OperationRegistry = exports.SemanticExecutor = exports.SemanticReplayLog = exports.SemanticDiffEngine = exports.PERMISSIVE_TRUST_POLICY = exports.CONSERVATIVE_TRUST_POLICY = exports.DEFAULT_TRUST_POLICY = exports.TrustEvaluator = exports.RiskAssessmentEngine = exports.ValidationPipeline = exports.TransformationEngine = exports.ASTSerializer = exports.ASTTransformer = exports.SemanticIR = exports.RetrievalValidator = exports.ReplayLog = exports.RollbackManager = exports.CognitiveTransaction = exports.TransactionCoordinator = exports.computeEntropyMetrics = exports.ContradictionDetector = exports.InvalidationEngine = exports.applySessionBias = exports.SessionManager = exports.chunkSymbols = exports.chunkSymbol = exports.makeContentHash = exports.makeSymbolId = exports.extractEdges = exports.extractSymbols = exports.isSupportedFile = exports.parseSource = exports.parseFile = exports.Telemetry = exports.Watcher = exports.Retrieval = exports.Indexer = exports.ClaimsEngine = exports.DependencyGraph = exports.Embedder = exports.DB = exports.TruthLevel = exports.CodeBrain = void 0;
 var api_js_1 = require("./api/api.js");
 Object.defineProperty(exports, "CodeBrain", { enumerable: true, get: function () { return api_js_1.CodeBrain; } });
 var index_js_1 = require("./types/index.js");
@@ -76,6 +90,15 @@ var index_js_12 = require("./semantic-execution/index.js");
 Object.defineProperty(exports, "SemanticExecutor", { enumerable: true, get: function () { return index_js_12.SemanticExecutor; } });
 Object.defineProperty(exports, "OperationRegistry", { enumerable: true, get: function () { return index_js_12.OperationRegistry; } });
 Object.defineProperty(exports, "createExecutionContext", { enumerable: true, get: function () { return index_js_12.createExecutionContext; } });
+// v2.5 — Runtime Awareness Phase
+__exportStar(require("./runtime-awareness/index.js"), exports);
+__exportStar(require("./outcomes/index.js"), exports);
+__exportStar(require("./runtime-validation/index.js"), exports);
+__exportStar(require("./calibration/index.js"), exports);
+__exportStar(require("./failure-memory/index.js"), exports);
+var RuntimeAwareRiskAssessor_js_1 = require("./risk/RuntimeAwareRiskAssessor.js");
+Object.defineProperty(exports, "RuntimeAwareRiskAssessor", { enumerable: true, get: function () { return RuntimeAwareRiskAssessor_js_1.RuntimeAwareRiskAssessor; } });
+__exportStar(require("./runtime-replay/index.js"), exports);
 // If run directly (node dist/index.js), print help
 if (require.main === module) {
     console.log(`

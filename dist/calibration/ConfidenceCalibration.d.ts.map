@@ -1,0 +1,1 @@
+{"version":3,"file":"ConfidenceCalibration.d.ts","sourceRoot":"","sources":["../../src/calibration/ConfidenceCalibration.ts"],"names":[],"mappings":"AAAA,MAAM,WAAW,iBAAiB;IAChC,aAAa,EAAE,MAAM,CAAC;IACtB,YAAY,EAAE,MAAM,CAAC;IACrB,gBAAgB,EAAE,MAAM,CAAC;IACzB,SAAS,EAAE,gBAAgB,GAAG,eAAe,GAAG,UAAU,CAAC;CAC5D;AAID,wBAAgB,SAAS,CAAC,aAAa,EAAE,MAAM,EAAE,YAAY,EAAE,MAAM,GAAG,iBAAiB,CASxF"}

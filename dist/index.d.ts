@@ -42,4 +42,12 @@ export { SemanticReplayLog } from './semantic-replay/index.js';
 export type { SemanticReplayEvent, SemanticReplayFilter } from './semantic-replay/index.js';
 export { SemanticExecutor, OperationRegistry, createExecutionContext } from './semantic-execution/index.js';
 export type { ExecutionContext, ExecutionPlan, ExecutionStep, ExecutionResult, OperationHandler } from './semantic-execution/index.js';
+export * from './runtime-awareness/index.js';
+export * from './outcomes/index.js';
+export * from './runtime-validation/index.js';
+export * from './calibration/index.js';
+export * from './failure-memory/index.js';
+export { RuntimeAwareRiskAssessor } from './risk/RuntimeAwareRiskAssessor.js';
+export type { RuntimeRiskContext, RuntimeAwareRiskAssessment } from './risk/RuntimeAwareRiskAssessor.js';
+export * from './runtime-replay/index.js';
 //# sourceMappingURL=index.d.ts.map

@@ -69,6 +69,16 @@ export type { SemanticReplayEvent, SemanticReplayFilter } from './semantic-repla
 export { SemanticExecutor, OperationRegistry, createExecutionContext } from './semantic-execution/index.js';
 export type { ExecutionContext, ExecutionPlan, ExecutionStep, ExecutionResult, OperationHandler } from './semantic-execution/index.js';
 
+// v2.5 — Runtime Awareness Phase
+export * from './runtime-awareness/index.js';
+export * from './outcomes/index.js';
+export * from './runtime-validation/index.js';
+export * from './calibration/index.js';
+export * from './failure-memory/index.js';
+export { RuntimeAwareRiskAssessor } from './risk/RuntimeAwareRiskAssessor.js';
+export type { RuntimeRiskContext, RuntimeAwareRiskAssessment } from './risk/RuntimeAwareRiskAssessor.js';
+export * from './runtime-replay/index.js';
+
 // If run directly (node dist/index.js), print help
 if (require.main === module) {
   console.log(`

@@ -16,7 +16,7 @@ const BASE_SCORES: Record<SemanticOperationType, number> = {
   inject_dependency:   50,
 };
 
-function scoreToLevel(score: number): RiskLevel {
+export function scoreToLevel(score: number): RiskLevel {
   if (score < 25) return 'low';
   if (score < 50) return 'medium';
   if (score < 75) return 'high';

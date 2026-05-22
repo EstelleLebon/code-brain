@@ -1,0 +1,1 @@
+{"version":3,"file":"OutcomeClassifier.d.ts","sourceRoot":"","sources":["../../src/outcomes/OutcomeClassifier.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,aAAa,EAAE,MAAM,uCAAuC,CAAC;AACtE,OAAO,EAAE,aAAa,EAAE,MAAM,uBAAuB,CAAC;AAEtD,qBAAa,iBAAiB;IAC5B,QAAQ,CAAC,OAAO,EAAE,aAAa,EAAE,GAAG;QAAE,OAAO,EAAE,aAAa,CAAC;QAAC,OAAO,EAAE,MAAM,EAAE,CAAA;KAAE;CA4ClF"}

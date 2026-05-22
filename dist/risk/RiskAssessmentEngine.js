@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RiskAssessmentEngine = void 0;
+exports.scoreToLevel = scoreToLevel;
 const BASE_SCORES = {
     rename_symbol: 10,
     move_function: 30,
