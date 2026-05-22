@@ -41,7 +41,7 @@ export type { SemanticDiff, OperationDiff, ImpactSummary } from './semantic-diff
 export { SemanticReplayLog } from './semantic-replay/index.js';
 export type { SemanticReplayEvent, SemanticReplayFilter } from './semantic-replay/index.js';
 export { SemanticExecutor, OperationRegistry, createExecutionContext } from './semantic-execution/index.js';
-export type { ExecutionContext, ExecutionPlan, ExecutionStep, ExecutionResult, OperationHandler } from './semantic-execution/index.js';
+export type { ExecutionContext, ExecutionPlan, ExecutionStep, ExecutionResult, OperationHandler, CognitiveConfig, CognitiveExecutionResult, CognitiveLoopData } from './semantic-execution/index.js';
 export * from './runtime-awareness/index.js';
 export * from './outcomes/index.js';
 export * from './runtime-validation/index.js';
@@ -64,4 +64,21 @@ export { computeDecayScore, type RetrievalDecayScore, type DecayInput } from './
 export { RuntimeLearningEngine, type LearningResult } from './learning/RuntimeLearningEngine.js';
 export { FailureLearning, type FailureLearningResult } from './learning/FailureLearning.js';
 export { SuccessPatternMemory, type SuccessPattern } from './learning/SuccessPatternMemory.js';
+export { CognitiveFeedbackLoop, type FeedbackLoopSummary } from './cognitive-loop/CognitiveFeedbackLoop.js';
+export { AdaptiveTrustPolicy, type AdaptiveTrustState } from './cognitive-loop/AdaptiveTrustPolicy.js';
+export { AdaptiveRetrievalPolicy, type RetrievalReliabilitySignal } from './cognitive-loop/AdaptiveRetrievalPolicy.js';
+export { LearningSignalAggregator, type AggregatedLearningSignal } from './cognitive-loop/LearningSignalAggregator.js';
+export { CognitiveMode } from './cognitive-modes/CognitiveMode.js';
+export { ModeSelector, type ModeSelectorContext } from './cognitive-modes/ModeSelector.js';
+export { getStrategy, STRATEGIES, type ExecutionStrategy } from './cognitive-modes/ExecutionStrategy.js';
+export { SelfHealingEngine, type HealingAttempt } from './self-healing/SelfHealingEngine.js';
+export { FailureRecoveryPlanner, type RecoveryPlan, type RecoveryStrategy } from './self-healing/FailureRecoveryPlanner.js';
+export { RollbackHeuristics, type RollbackDecision, type RollbackScope } from './self-healing/RollbackHeuristics.js';
+export { WorkingMemory, type WorkingMemorySnapshot } from './hierarchical-memory/WorkingMemory.js';
+export { EpisodicMemory, type Episode, type EpisodeType } from './hierarchical-memory/EpisodicMemory.js';
+export { SemanticMemory, type SemanticFact } from './hierarchical-memory/SemanticMemory.js';
+export { ProceduralMemory, type ProceduralPattern } from './hierarchical-memory/ProceduralMemory.js';
+export { CognitiveMetrics, type CognitiveMetricsSnapshot, type CognitiveHealthSnapshot } from './metrics/CognitiveMetrics.js';
+export { RuntimeHealthMetrics, type RuntimeHealthReport } from './metrics/RuntimeHealthMetrics.js';
+export { MetricsAggregator } from './metrics/MetricsAggregator.js';
 //# sourceMappingURL=index.d.ts.map

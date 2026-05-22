@@ -16,7 +16,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SessionStore = exports.SemanticReplayStore = exports.RuntimeReplayStore = exports.ReplayLogStore = exports.isTruthLevelAtLeast = exports.RuntimeAwareRiskAssessor = exports.createExecutionContext = exports.OperationRegistry = exports.SemanticExecutor = exports.SemanticReplayLog = exports.SemanticDiffEngine = exports.PERMISSIVE_TRUST_POLICY = exports.CONSERVATIVE_TRUST_POLICY = exports.DEFAULT_TRUST_POLICY = exports.TrustEvaluator = exports.RiskAssessmentEngine = exports.ValidationPipeline = exports.TransformationEngine = exports.ASTSerializer = exports.ASTTransformer = exports.SemanticIR = exports.RetrievalValidator = exports.ReplayLog = exports.RollbackManager = exports.CognitiveTransaction = exports.TransactionCoordinator = exports.computeEntropyMetrics = exports.ContradictionDetector = exports.InvalidationEngine = exports.applySessionBias = exports.SessionManager = exports.chunkSymbols = exports.chunkSymbol = exports.makeContentHash = exports.makeSymbolId = exports.extractEdges = exports.extractSymbols = exports.isSupportedFile = exports.parseSource = exports.parseFile = exports.Telemetry = exports.Watcher = exports.Retrieval = exports.Indexer = exports.ClaimsEngine = exports.DependencyGraph = exports.Embedder = exports.DB = exports.TruthLevel = exports.CodeBrain = void 0;
-exports.SuccessPatternMemory = exports.FailureLearning = exports.RuntimeLearningEngine = exports.computeDecayScore = exports.summarizeCluster = exports.MemoryCompactor = exports.ConsolidationEngine = exports.CalibrationStore = exports.FailureMemoryStore = void 0;
+exports.MetricsAggregator = exports.RuntimeHealthMetrics = exports.CognitiveMetrics = exports.ProceduralMemory = exports.SemanticMemory = exports.EpisodicMemory = exports.WorkingMemory = exports.RollbackHeuristics = exports.FailureRecoveryPlanner = exports.SelfHealingEngine = exports.STRATEGIES = exports.getStrategy = exports.ModeSelector = exports.CognitiveMode = exports.LearningSignalAggregator = exports.AdaptiveRetrievalPolicy = exports.AdaptiveTrustPolicy = exports.CognitiveFeedbackLoop = exports.SuccessPatternMemory = exports.FailureLearning = exports.RuntimeLearningEngine = exports.computeDecayScore = exports.summarizeCluster = exports.MemoryCompactor = exports.ConsolidationEngine = exports.CalibrationStore = exports.FailureMemoryStore = void 0;
 var api_js_1 = require("./api/api.js");
 Object.defineProperty(exports, "CodeBrain", { enumerable: true, get: function () { return api_js_1.CodeBrain; } });
 var index_js_1 = require("./types/index.js");
@@ -129,6 +129,42 @@ var FailureLearning_js_1 = require("./learning/FailureLearning.js");
 Object.defineProperty(exports, "FailureLearning", { enumerable: true, get: function () { return FailureLearning_js_1.FailureLearning; } });
 var SuccessPatternMemory_js_1 = require("./learning/SuccessPatternMemory.js");
 Object.defineProperty(exports, "SuccessPatternMemory", { enumerable: true, get: function () { return SuccessPatternMemory_js_1.SuccessPatternMemory; } });
+// v3.5 — Autonomous Cognitive Loop Phase
+var CognitiveFeedbackLoop_js_1 = require("./cognitive-loop/CognitiveFeedbackLoop.js");
+Object.defineProperty(exports, "CognitiveFeedbackLoop", { enumerable: true, get: function () { return CognitiveFeedbackLoop_js_1.CognitiveFeedbackLoop; } });
+var AdaptiveTrustPolicy_js_1 = require("./cognitive-loop/AdaptiveTrustPolicy.js");
+Object.defineProperty(exports, "AdaptiveTrustPolicy", { enumerable: true, get: function () { return AdaptiveTrustPolicy_js_1.AdaptiveTrustPolicy; } });
+var AdaptiveRetrievalPolicy_js_1 = require("./cognitive-loop/AdaptiveRetrievalPolicy.js");
+Object.defineProperty(exports, "AdaptiveRetrievalPolicy", { enumerable: true, get: function () { return AdaptiveRetrievalPolicy_js_1.AdaptiveRetrievalPolicy; } });
+var LearningSignalAggregator_js_1 = require("./cognitive-loop/LearningSignalAggregator.js");
+Object.defineProperty(exports, "LearningSignalAggregator", { enumerable: true, get: function () { return LearningSignalAggregator_js_1.LearningSignalAggregator; } });
+var CognitiveMode_js_1 = require("./cognitive-modes/CognitiveMode.js");
+Object.defineProperty(exports, "CognitiveMode", { enumerable: true, get: function () { return CognitiveMode_js_1.CognitiveMode; } });
+var ModeSelector_js_1 = require("./cognitive-modes/ModeSelector.js");
+Object.defineProperty(exports, "ModeSelector", { enumerable: true, get: function () { return ModeSelector_js_1.ModeSelector; } });
+var ExecutionStrategy_js_1 = require("./cognitive-modes/ExecutionStrategy.js");
+Object.defineProperty(exports, "getStrategy", { enumerable: true, get: function () { return ExecutionStrategy_js_1.getStrategy; } });
+Object.defineProperty(exports, "STRATEGIES", { enumerable: true, get: function () { return ExecutionStrategy_js_1.STRATEGIES; } });
+var SelfHealingEngine_js_1 = require("./self-healing/SelfHealingEngine.js");
+Object.defineProperty(exports, "SelfHealingEngine", { enumerable: true, get: function () { return SelfHealingEngine_js_1.SelfHealingEngine; } });
+var FailureRecoveryPlanner_js_1 = require("./self-healing/FailureRecoveryPlanner.js");
+Object.defineProperty(exports, "FailureRecoveryPlanner", { enumerable: true, get: function () { return FailureRecoveryPlanner_js_1.FailureRecoveryPlanner; } });
+var RollbackHeuristics_js_1 = require("./self-healing/RollbackHeuristics.js");
+Object.defineProperty(exports, "RollbackHeuristics", { enumerable: true, get: function () { return RollbackHeuristics_js_1.RollbackHeuristics; } });
+var WorkingMemory_js_1 = require("./hierarchical-memory/WorkingMemory.js");
+Object.defineProperty(exports, "WorkingMemory", { enumerable: true, get: function () { return WorkingMemory_js_1.WorkingMemory; } });
+var EpisodicMemory_js_1 = require("./hierarchical-memory/EpisodicMemory.js");
+Object.defineProperty(exports, "EpisodicMemory", { enumerable: true, get: function () { return EpisodicMemory_js_1.EpisodicMemory; } });
+var SemanticMemory_js_1 = require("./hierarchical-memory/SemanticMemory.js");
+Object.defineProperty(exports, "SemanticMemory", { enumerable: true, get: function () { return SemanticMemory_js_1.SemanticMemory; } });
+var ProceduralMemory_js_1 = require("./hierarchical-memory/ProceduralMemory.js");
+Object.defineProperty(exports, "ProceduralMemory", { enumerable: true, get: function () { return ProceduralMemory_js_1.ProceduralMemory; } });
+var CognitiveMetrics_js_1 = require("./metrics/CognitiveMetrics.js");
+Object.defineProperty(exports, "CognitiveMetrics", { enumerable: true, get: function () { return CognitiveMetrics_js_1.CognitiveMetrics; } });
+var RuntimeHealthMetrics_js_1 = require("./metrics/RuntimeHealthMetrics.js");
+Object.defineProperty(exports, "RuntimeHealthMetrics", { enumerable: true, get: function () { return RuntimeHealthMetrics_js_1.RuntimeHealthMetrics; } });
+var MetricsAggregator_js_1 = require("./metrics/MetricsAggregator.js");
+Object.defineProperty(exports, "MetricsAggregator", { enumerable: true, get: function () { return MetricsAggregator_js_1.MetricsAggregator; } });
 // If run directly (node dist/index.js), print help
 if (require.main === module) {
     console.log(`

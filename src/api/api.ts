@@ -16,6 +16,15 @@ import {
   SymbolNode, SemanticChunk, Claim, DependencyEdge, IndexStats, CodeBrainConfig,
   RetrievalResult
 } from '../types/index.js';
+import { CognitiveFeedbackLoop } from '../cognitive-loop/CognitiveFeedbackLoop.js';
+import { ModeSelector } from '../cognitive-modes/ModeSelector.js';
+import { SelfHealingEngine } from '../self-healing/SelfHealingEngine.js';
+import { MetricsAggregator } from '../metrics/MetricsAggregator.js';
+import { WorkingMemory } from '../hierarchical-memory/WorkingMemory.js';
+import { EpisodicMemory } from '../hierarchical-memory/EpisodicMemory.js';
+import { SemanticMemory } from '../hierarchical-memory/SemanticMemory.js';
+import { ProceduralMemory } from '../hierarchical-memory/ProceduralMemory.js';
+import { type CognitiveHealthSnapshot } from '../metrics/CognitiveMetrics.js';
 
 export class CodeBrain {
   private db: DB;
@@ -29,6 +38,16 @@ export class CodeBrain {
   private invalidationEngine: InvalidationEngine;
   private sessionManager: SessionManager;
   private contradictionDetector: ContradictionDetector;
+
+  // v3.5 — Autonomous Cognitive Loop subsystems
+  readonly feedbackLoop: CognitiveFeedbackLoop;
+  readonly modeSelector: ModeSelector;
+  readonly selfHealingEngine: SelfHealingEngine;
+  readonly metricsAggregator: MetricsAggregator;
+  readonly workingMemory: WorkingMemory;
+  readonly episodicMemory: EpisodicMemory;
+  readonly semanticMemory: SemanticMemory;
+  readonly proceduralMemory: ProceduralMemory;
 
   constructor(config: CodeBrainConfig = {}) {
     const dbPath = config.dbPath ?? path.join(os.homedir(), '.code-brain', 'index.db');
@@ -51,6 +70,17 @@ export class CodeBrain {
     this.watcher = new Watcher(this.indexer, this.embedder, this.telemetry);
     this.invalidationEngine = new InvalidationEngine(this.db, this.graph, this.telemetry);
     this.contradictionDetector = new ContradictionDetector();
+
+    // v3.5 — instantiate autonomous cognitive loop subsystems
+    this.feedbackLoop = new CognitiveFeedbackLoop();
+    this.modeSelector = new ModeSelector();
+    this.selfHealingEngine = new SelfHealingEngine();
+    this.metricsAggregator = new MetricsAggregator();
+    const sessionId = this.sessionManager.createSession();
+    this.workingMemory = new WorkingMemory(sessionId);
+    this.episodicMemory = new EpisodicMemory();
+    this.semanticMemory = new SemanticMemory();
+    this.proceduralMemory = new ProceduralMemory();
 
     // Load existing edges into graph
     this.loadGraphFromDB();
@@ -169,6 +199,20 @@ export class CodeBrain {
       claims = symbols.flatMap(s => this.claimsEngine.getClaimsForSymbol(s.id));
     }
     return this.contradictionDetector.detect(claims);
+  }
+
+  // ── v3.5: Cognitive health API ───────────────────────────────────────────────
+
+  getCognitiveHealth(): CognitiveHealthSnapshot {
+    const trustState = this.feedbackLoop.adaptiveTrust.getState();
+    const recoverySuccessRate = this.selfHealingEngine.unresolvedCount() === 0
+      ? 1
+      : 1 - (this.selfHealingEngine.unresolvedCount() / Math.max(1, this.selfHealingEngine.getHistory().length));
+    return this.metricsAggregator.cognitiveHealth(trustState.confidence, recoverySuccessRate);
+  }
+
+  getCognitiveSummary() {
+    return this.feedbackLoop.summary();
   }
 
   close(): void {

@@ -17,6 +17,14 @@ const telemetry_js_1 = require("../telemetry/telemetry.js");
 const InvalidationEngine_js_1 = require("../invalidation/InvalidationEngine.js");
 const SessionContext_js_1 = require("../session/SessionContext.js");
 const ContradictionDetector_js_1 = require("../contradictions/ContradictionDetector.js");
+const CognitiveFeedbackLoop_js_1 = require("../cognitive-loop/CognitiveFeedbackLoop.js");
+const ModeSelector_js_1 = require("../cognitive-modes/ModeSelector.js");
+const SelfHealingEngine_js_1 = require("../self-healing/SelfHealingEngine.js");
+const MetricsAggregator_js_1 = require("../metrics/MetricsAggregator.js");
+const WorkingMemory_js_1 = require("../hierarchical-memory/WorkingMemory.js");
+const EpisodicMemory_js_1 = require("../hierarchical-memory/EpisodicMemory.js");
+const SemanticMemory_js_1 = require("../hierarchical-memory/SemanticMemory.js");
+const ProceduralMemory_js_1 = require("../hierarchical-memory/ProceduralMemory.js");
 class CodeBrain {
     db;
     embedder;
@@ -29,6 +37,15 @@ class CodeBrain {
     invalidationEngine;
     sessionManager;
     contradictionDetector;
+    // v3.5 — Autonomous Cognitive Loop subsystems
+    feedbackLoop;
+    modeSelector;
+    selfHealingEngine;
+    metricsAggregator;
+    workingMemory;
+    episodicMemory;
+    semanticMemory;
+    proceduralMemory;
     constructor(config = {}) {
         const dbPath = config.dbPath ?? path_1.default.join(os_1.default.homedir(), '.code-brain', 'index.db');
         const telemetryEnabled = config.telemetry !== false;
@@ -43,6 +60,16 @@ class CodeBrain {
         this.watcher = new watcher_js_1.Watcher(this.indexer, this.embedder, this.telemetry);
         this.invalidationEngine = new InvalidationEngine_js_1.InvalidationEngine(this.db, this.graph, this.telemetry);
         this.contradictionDetector = new ContradictionDetector_js_1.ContradictionDetector();
+        // v3.5 — instantiate autonomous cognitive loop subsystems
+        this.feedbackLoop = new CognitiveFeedbackLoop_js_1.CognitiveFeedbackLoop();
+        this.modeSelector = new ModeSelector_js_1.ModeSelector();
+        this.selfHealingEngine = new SelfHealingEngine_js_1.SelfHealingEngine();
+        this.metricsAggregator = new MetricsAggregator_js_1.MetricsAggregator();
+        const sessionId = this.sessionManager.createSession();
+        this.workingMemory = new WorkingMemory_js_1.WorkingMemory(sessionId);
+        this.episodicMemory = new EpisodicMemory_js_1.EpisodicMemory();
+        this.semanticMemory = new SemanticMemory_js_1.SemanticMemory();
+        this.proceduralMemory = new ProceduralMemory_js_1.ProceduralMemory();
         // Load existing edges into graph
         this.loadGraphFromDB();
     }
@@ -141,6 +168,17 @@ class CodeBrain {
             claims = symbols.flatMap(s => this.claimsEngine.getClaimsForSymbol(s.id));
         }
         return this.contradictionDetector.detect(claims);
+    }
+    // ── v3.5: Cognitive health API ───────────────────────────────────────────────
+    getCognitiveHealth() {
+        const trustState = this.feedbackLoop.adaptiveTrust.getState();
+        const recoverySuccessRate = this.selfHealingEngine.unresolvedCount() === 0
+            ? 1
+            : 1 - (this.selfHealingEngine.unresolvedCount() / Math.max(1, this.selfHealingEngine.getHistory().length));
+        return this.metricsAggregator.cognitiveHealth(trustState.confidence, recoverySuccessRate);
+    }
+    getCognitiveSummary() {
+        return this.feedbackLoop.summary();
     }
     close() {
         this.watcher.stop();

@@ -21,7 +21,8 @@ class SemanticExecutor {
     trustEvaluator;
     diffEngine;
     replayLog;
-    constructor(trustPolicy = TrustPolicy_js_1.DEFAULT_TRUST_POLICY) {
+    cognitive;
+    constructor(trustPolicy = TrustPolicy_js_1.DEFAULT_TRUST_POLICY, cognitive = {}) {
         this.registry = new OperationRegistry_js_1.OperationRegistry();
         this.transformer = new ASTTransformer_js_1.ASTTransformer();
         this.validator = new ValidationPipeline_js_1.ValidationPipeline();
@@ -29,6 +30,7 @@ class SemanticExecutor {
         this.trustEvaluator = new TrustPolicy_js_1.TrustEvaluator(trustPolicy);
         this.diffEngine = new SemanticDiffEngine_js_1.SemanticDiffEngine();
         this.replayLog = new SemanticReplayLog_js_1.SemanticReplayLog();
+        this.cognitive = cognitive;
     }
     // ── Planning phase (no file writes) ─────────────────────────────────────────
     plan(transformation, ctx) {
@@ -170,6 +172,88 @@ class SemanticExecutor {
             error,
             durationMs: Date.now() - start,
         };
+    }
+    // ── Cognitive pipeline (async) ────────────────────────────────────────────────
+    // Wraps execute() and closes the learning loop:
+    //   execute → runtime validation → outcome analysis → learning → replay record
+    async executeAsync(transformation, ctx, cognitiveOverride) {
+        const cfg = cognitiveOverride ?? this.cognitive;
+        // 1. Run the synchronous execution pipeline
+        const base = this.execute(transformation, ctx);
+        const cognitiveData = {
+            outcomes: [],
+            learningResults: [],
+            replayEventIds: [],
+        };
+        // 2. Runtime validation (async — runs tests/lint/typecheck if configured)
+        let runtimeSignals = [];
+        if (cfg.validationPipeline) {
+            cognitiveData.runtimeValidation = await cfg.validationPipeline.run(ctx.workingDirectory);
+            runtimeSignals = cognitiveData.runtimeValidation.signals;
+        }
+        // 3. Outcome analysis — one outcome per operation step
+        if (cfg.outcomeAnalyzer) {
+            for (const step of base.plan.steps) {
+                const outcome = cfg.outcomeAnalyzer.analyze(step.operationId, step.operation.operationType, runtimeSignals);
+                cognitiveData.outcomes.push(outcome);
+                // 4. Learning — route outcome to RuntimeLearningEngine
+                if (cfg.learningEngine) {
+                    // Map execution success/failure into outcome status for learning
+                    const learningOutcome = base.success
+                        ? outcome
+                        : { ...outcome, outcome: 'failure' };
+                    const lr = cfg.learningEngine.observe(learningOutcome);
+                    cognitiveData.learningResults.push(lr);
+                }
+                // 5. Runtime replay record
+                if (cfg.runtimeReplayLog) {
+                    const signalTypes = runtimeSignals.map(s => s.signalType);
+                    const event = cfg.runtimeReplayLog.record(step.operationId, signalTypes, outcome.id, !base.success, { transformationId: transformation.id, durationMs: base.durationMs });
+                    cognitiveData.replayEventIds.push(event.id);
+                }
+                // 6. Feed result into CognitiveFeedbackLoop (v3.5)
+                if (cfg.feedbackLoop && cognitiveData.learningResults.length > 0) {
+                    const lr = cognitiveData.learningResults[cognitiveData.learningResults.length - 1];
+                    const affectedChunkIds = [];
+                    try {
+                        cfg.feedbackLoop.observe(lr, outcome, affectedChunkIds);
+                    }
+                    catch {
+                        // feedback loop errors must never break execution
+                    }
+                }
+            }
+        }
+        // 7. Self-healing on failure (v3.5)
+        if (!base.success && cfg.selfHealingEngine) {
+            try {
+                cfg.selfHealingEngine.heal(base, runtimeSignals);
+            }
+            catch {
+                // self-healing errors are isolated
+            }
+        }
+        // 8. Record metrics (v3.5)
+        if (cfg.metricsAggregator) {
+            try {
+                cfg.metricsAggregator.recordExecution({
+                    success: base.success,
+                    hadRollback: false,
+                    retrievalHits: 0,
+                    retrievalTotal: 0,
+                    hadContradiction: false,
+                    runtimePassed: cognitiveData.runtimeValidation
+                        ? cognitiveData.runtimeValidation.passed
+                        : base.success,
+                    calibrationDelta: 0,
+                    signals: runtimeSignals,
+                });
+            }
+            catch {
+                // metrics errors are isolated
+            }
+        }
+        return { ...base, cognitive: cognitiveData };
     }
     getRegistry() {
         return this.registry;

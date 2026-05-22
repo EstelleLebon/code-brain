@@ -13,6 +13,10 @@ import { TrustEvaluator, TrustDecision, TrustPolicy, DEFAULT_TRUST_POLICY } from
 import { SemanticDiffEngine } from '../semantic-diff/SemanticDiffEngine.js';
 import { SemanticDiff, ImpactSummary } from '../semantic-diff/SemanticDiff.js';
 import { SemanticReplayLog } from '../semantic-replay/SemanticReplayLog.js';
+import type { CognitiveConfig } from './CognitiveConfig.js';
+import type { ExecutionOutcome } from '../outcomes/ExecutionOutcome.js';
+import type { LearningResult } from '../learning/RuntimeLearningEngine.js';
+import type { RuntimeValidationResult } from '../runtime-validation/types.js';
 
 export interface ExecutionResult {
   transformationId: string;
@@ -29,6 +33,17 @@ export interface ExecutionResult {
   durationMs: number;
 }
 
+export interface CognitiveLoopData {
+  runtimeValidation?: RuntimeValidationResult;
+  outcomes: ExecutionOutcome[];
+  learningResults: LearningResult[];
+  replayEventIds: string[];
+}
+
+export interface CognitiveExecutionResult extends ExecutionResult {
+  cognitive: CognitiveLoopData;
+}
+
 export class SemanticExecutor {
   private registry: OperationRegistry;
   private transformer: ASTTransformer;
@@ -37,8 +52,9 @@ export class SemanticExecutor {
   private trustEvaluator: TrustEvaluator;
   private diffEngine: SemanticDiffEngine;
   readonly replayLog: SemanticReplayLog;
+  private cognitive: CognitiveConfig;
 
-  constructor(trustPolicy: TrustPolicy = DEFAULT_TRUST_POLICY) {
+  constructor(trustPolicy: TrustPolicy = DEFAULT_TRUST_POLICY, cognitive: CognitiveConfig = {}) {
     this.registry = new OperationRegistry();
     this.transformer = new ASTTransformer();
     this.validator = new ValidationPipeline();
@@ -46,6 +62,7 @@ export class SemanticExecutor {
     this.trustEvaluator = new TrustEvaluator(trustPolicy);
     this.diffEngine = new SemanticDiffEngine();
     this.replayLog = new SemanticReplayLog();
+    this.cognitive = cognitive;
   }
 
   // ── Planning phase (no file writes) ─────────────────────────────────────────
@@ -213,6 +230,111 @@ export class SemanticExecutor {
       error,
       durationMs: Date.now() - start,
     };
+  }
+
+  // ── Cognitive pipeline (async) ────────────────────────────────────────────────
+  // Wraps execute() and closes the learning loop:
+  //   execute → runtime validation → outcome analysis → learning → replay record
+
+  async executeAsync(
+    transformation: SemanticTransformation,
+    ctx: ExecutionContext,
+    cognitiveOverride?: CognitiveConfig,
+  ): Promise<CognitiveExecutionResult> {
+    const cfg = cognitiveOverride ?? this.cognitive;
+
+    // 1. Run the synchronous execution pipeline
+    const base = this.execute(transformation, ctx);
+
+    const cognitiveData: CognitiveLoopData = {
+      outcomes: [],
+      learningResults: [],
+      replayEventIds: [],
+    };
+
+    // 2. Runtime validation (async — runs tests/lint/typecheck if configured)
+    let runtimeSignals: import('../runtime-awareness/RuntimeSignal.js').RuntimeSignal[] = [];
+    if (cfg.validationPipeline) {
+      cognitiveData.runtimeValidation = await cfg.validationPipeline.run(ctx.workingDirectory);
+      runtimeSignals = cognitiveData.runtimeValidation.signals;
+    }
+
+    // 3. Outcome analysis — one outcome per operation step
+    if (cfg.outcomeAnalyzer) {
+      for (const step of base.plan.steps) {
+        const outcome = cfg.outcomeAnalyzer.analyze(
+          step.operationId,
+          step.operation.operationType,
+          runtimeSignals,
+        );
+        cognitiveData.outcomes.push(outcome);
+
+        // 4. Learning — route outcome to RuntimeLearningEngine
+        if (cfg.learningEngine) {
+          // Map execution success/failure into outcome status for learning
+          const learningOutcome = base.success
+            ? outcome
+            : { ...outcome, outcome: 'failure' as const };
+          const lr = cfg.learningEngine.observe(learningOutcome);
+          cognitiveData.learningResults.push(lr);
+        }
+
+            // 5. Runtime replay record
+        if (cfg.runtimeReplayLog) {
+          const signalTypes = runtimeSignals.map(s => s.signalType);
+          const event = cfg.runtimeReplayLog.record(
+            step.operationId,
+            signalTypes,
+            outcome.id,
+            !base.success,
+            { transformationId: transformation.id, durationMs: base.durationMs },
+          );
+          cognitiveData.replayEventIds.push(event.id);
+        }
+
+        // 6. Feed result into CognitiveFeedbackLoop (v3.5)
+        if (cfg.feedbackLoop && cognitiveData.learningResults.length > 0) {
+          const lr = cognitiveData.learningResults[cognitiveData.learningResults.length - 1];
+          const affectedChunkIds: string[] = [];
+          try {
+            cfg.feedbackLoop.observe(lr, outcome, affectedChunkIds);
+          } catch {
+            // feedback loop errors must never break execution
+          }
+        }
+      }
+    }
+
+    // 7. Self-healing on failure (v3.5)
+    if (!base.success && cfg.selfHealingEngine) {
+      try {
+        cfg.selfHealingEngine.heal(base, runtimeSignals);
+      } catch {
+        // self-healing errors are isolated
+      }
+    }
+
+    // 8. Record metrics (v3.5)
+    if (cfg.metricsAggregator) {
+      try {
+        cfg.metricsAggregator.recordExecution({
+          success: base.success,
+          hadRollback: false,
+          retrievalHits: 0,
+          retrievalTotal: 0,
+          hadContradiction: false,
+          runtimePassed: cognitiveData.runtimeValidation
+            ? cognitiveData.runtimeValidation.passed
+            : base.success,
+          calibrationDelta: 0,
+          signals: runtimeSignals,
+        });
+      } catch {
+        // metrics errors are isolated
+      }
+    }
+
+    return { ...base, cognitive: cognitiveData };
   }
 
   getRegistry(): OperationRegistry {

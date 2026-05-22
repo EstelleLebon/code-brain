@@ -2,6 +2,15 @@ import { InvalidationResult } from '../invalidation/InvalidationEngine.js';
 import { SessionManager } from '../session/SessionContext.js';
 import { Contradiction } from '../contradictions/types.js';
 import { SymbolNode, SemanticChunk, Claim, DependencyEdge, IndexStats, CodeBrainConfig, RetrievalResult } from '../types/index.js';
+import { CognitiveFeedbackLoop } from '../cognitive-loop/CognitiveFeedbackLoop.js';
+import { ModeSelector } from '../cognitive-modes/ModeSelector.js';
+import { SelfHealingEngine } from '../self-healing/SelfHealingEngine.js';
+import { MetricsAggregator } from '../metrics/MetricsAggregator.js';
+import { WorkingMemory } from '../hierarchical-memory/WorkingMemory.js';
+import { EpisodicMemory } from '../hierarchical-memory/EpisodicMemory.js';
+import { SemanticMemory } from '../hierarchical-memory/SemanticMemory.js';
+import { ProceduralMemory } from '../hierarchical-memory/ProceduralMemory.js';
+import { type CognitiveHealthSnapshot } from '../metrics/CognitiveMetrics.js';
 export declare class CodeBrain {
     private db;
     private embedder;
@@ -14,6 +23,14 @@ export declare class CodeBrain {
     private invalidationEngine;
     private sessionManager;
     private contradictionDetector;
+    readonly feedbackLoop: CognitiveFeedbackLoop;
+    readonly modeSelector: ModeSelector;
+    readonly selfHealingEngine: SelfHealingEngine;
+    readonly metricsAggregator: MetricsAggregator;
+    readonly workingMemory: WorkingMemory;
+    readonly episodicMemory: EpisodicMemory;
+    readonly semanticMemory: SemanticMemory;
+    readonly proceduralMemory: ProceduralMemory;
     constructor(config?: CodeBrainConfig);
     private loadGraphFromDB;
     indexRepository(repoPath: string): Promise<IndexStats>;
@@ -46,6 +63,8 @@ export declare class CodeBrain {
     getSessionManager(): SessionManager;
     createSession(): string;
     detectContradictions(symbolId?: string): Contradiction[];
+    getCognitiveHealth(): CognitiveHealthSnapshot;
+    getCognitiveSummary(): import("../cognitive-loop/CognitiveFeedbackLoop.js").FeedbackLoopSummary;
     close(): void;
 }
 //# sourceMappingURL=api.d.ts.map
