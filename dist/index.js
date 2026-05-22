@@ -16,7 +16,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SessionStore = exports.SemanticReplayStore = exports.RuntimeReplayStore = exports.ReplayLogStore = exports.isTruthLevelAtLeast = exports.RuntimeAwareRiskAssessor = exports.createExecutionContext = exports.OperationRegistry = exports.SemanticExecutor = exports.SemanticReplayLog = exports.SemanticDiffEngine = exports.PERMISSIVE_TRUST_POLICY = exports.CONSERVATIVE_TRUST_POLICY = exports.DEFAULT_TRUST_POLICY = exports.TrustEvaluator = exports.RiskAssessmentEngine = exports.ValidationPipeline = exports.TransformationEngine = exports.ASTSerializer = exports.ASTTransformer = exports.SemanticIR = exports.RetrievalValidator = exports.ReplayLog = exports.RollbackManager = exports.CognitiveTransaction = exports.TransactionCoordinator = exports.computeEntropyMetrics = exports.ContradictionDetector = exports.InvalidationEngine = exports.applySessionBias = exports.SessionManager = exports.chunkSymbols = exports.chunkSymbol = exports.makeContentHash = exports.makeSymbolId = exports.extractEdges = exports.extractSymbols = exports.isSupportedFile = exports.parseSource = exports.parseFile = exports.Telemetry = exports.Watcher = exports.Retrieval = exports.Indexer = exports.ClaimsEngine = exports.DependencyGraph = exports.Embedder = exports.DB = exports.TruthLevel = exports.CodeBrain = void 0;
-exports.MetricsAggregator = exports.RuntimeHealthMetrics = exports.CognitiveMetrics = exports.ProceduralMemory = exports.SemanticMemory = exports.EpisodicMemory = exports.WorkingMemory = exports.RollbackHeuristics = exports.FailureRecoveryPlanner = exports.SelfHealingEngine = exports.STRATEGIES = exports.getStrategy = exports.ModeSelector = exports.CognitiveMode = exports.LearningSignalAggregator = exports.AdaptiveRetrievalPolicy = exports.AdaptiveTrustPolicy = exports.CognitiveFeedbackLoop = exports.SuccessPatternMemory = exports.FailureLearning = exports.RuntimeLearningEngine = exports.computeDecayScore = exports.summarizeCluster = exports.MemoryCompactor = exports.ConsolidationEngine = exports.CalibrationStore = exports.FailureMemoryStore = void 0;
+exports.PlanningMetrics = exports.PlanningHeuristics = exports.StrategyMemory = exports.ArchitecturalInvariantChecker = exports.ConstraintEngine = exports.AutonomousExecutor = exports.CheckpointManager = exports.AdaptivePlanner = exports.PlanGenerator = exports.ExecutionGraph = exports.GoalDecomposer = exports.MetricsAggregator = exports.RuntimeHealthMetrics = exports.CognitiveMetrics = exports.ProceduralMemory = exports.SemanticMemory = exports.EpisodicMemory = exports.WorkingMemory = exports.RollbackHeuristics = exports.FailureRecoveryPlanner = exports.SelfHealingEngine = exports.STRATEGIES = exports.getStrategy = exports.ModeSelector = exports.CognitiveMode = exports.LearningSignalAggregator = exports.AdaptiveRetrievalPolicy = exports.AdaptiveTrustPolicy = exports.CognitiveFeedbackLoop = exports.SuccessPatternMemory = exports.FailureLearning = exports.RuntimeLearningEngine = exports.computeDecayScore = exports.summarizeCluster = exports.MemoryCompactor = exports.ConsolidationEngine = exports.CalibrationStore = exports.FailureMemoryStore = void 0;
 var api_js_1 = require("./api/api.js");
 Object.defineProperty(exports, "CodeBrain", { enumerable: true, get: function () { return api_js_1.CodeBrain; } });
 var index_js_1 = require("./types/index.js");
@@ -165,6 +165,28 @@ var RuntimeHealthMetrics_js_1 = require("./metrics/RuntimeHealthMetrics.js");
 Object.defineProperty(exports, "RuntimeHealthMetrics", { enumerable: true, get: function () { return RuntimeHealthMetrics_js_1.RuntimeHealthMetrics; } });
 var MetricsAggregator_js_1 = require("./metrics/MetricsAggregator.js");
 Object.defineProperty(exports, "MetricsAggregator", { enumerable: true, get: function () { return MetricsAggregator_js_1.MetricsAggregator; } });
+var GoalDecomposer_js_1 = require("./goals/GoalDecomposer.js");
+Object.defineProperty(exports, "GoalDecomposer", { enumerable: true, get: function () { return GoalDecomposer_js_1.GoalDecomposer; } });
+var ExecutionGraph_js_1 = require("./planning/ExecutionGraph.js");
+Object.defineProperty(exports, "ExecutionGraph", { enumerable: true, get: function () { return ExecutionGraph_js_1.ExecutionGraph; } });
+var PlanGenerator_js_1 = require("./planning/PlanGenerator.js");
+Object.defineProperty(exports, "PlanGenerator", { enumerable: true, get: function () { return PlanGenerator_js_1.PlanGenerator; } });
+var AdaptivePlanner_js_1 = require("./planning/AdaptivePlanner.js");
+Object.defineProperty(exports, "AdaptivePlanner", { enumerable: true, get: function () { return AdaptivePlanner_js_1.AdaptivePlanner; } });
+var ExecutionCheckpoint_js_1 = require("./autonomous-execution/ExecutionCheckpoint.js");
+Object.defineProperty(exports, "CheckpointManager", { enumerable: true, get: function () { return ExecutionCheckpoint_js_1.CheckpointManager; } });
+var AutonomousExecutor_js_1 = require("./autonomous-execution/AutonomousExecutor.js");
+Object.defineProperty(exports, "AutonomousExecutor", { enumerable: true, get: function () { return AutonomousExecutor_js_1.AutonomousExecutor; } });
+var ConstraintEngine_js_1 = require("./constraints/ConstraintEngine.js");
+Object.defineProperty(exports, "ConstraintEngine", { enumerable: true, get: function () { return ConstraintEngine_js_1.ConstraintEngine; } });
+var ArchitecturalInvariant_js_1 = require("./constraints/ArchitecturalInvariant.js");
+Object.defineProperty(exports, "ArchitecturalInvariantChecker", { enumerable: true, get: function () { return ArchitecturalInvariant_js_1.ArchitecturalInvariantChecker; } });
+var StrategyMemory_js_1 = require("./strategic-memory/StrategyMemory.js");
+Object.defineProperty(exports, "StrategyMemory", { enumerable: true, get: function () { return StrategyMemory_js_1.StrategyMemory; } });
+var PlanningHeuristics_js_1 = require("./strategic-memory/PlanningHeuristics.js");
+Object.defineProperty(exports, "PlanningHeuristics", { enumerable: true, get: function () { return PlanningHeuristics_js_1.PlanningHeuristics; } });
+var PlanningMetrics_js_1 = require("./planning-metrics/PlanningMetrics.js");
+Object.defineProperty(exports, "PlanningMetrics", { enumerable: true, get: function () { return PlanningMetrics_js_1.PlanningMetrics; } });
 // If run directly (node dist/index.js), print help
 if (require.main === module) {
     console.log(`

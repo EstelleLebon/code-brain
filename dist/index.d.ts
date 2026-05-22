@@ -81,4 +81,24 @@ export { ProceduralMemory, type ProceduralPattern } from './hierarchical-memory/
 export { CognitiveMetrics, type CognitiveMetricsSnapshot, type CognitiveHealthSnapshot } from './metrics/CognitiveMetrics.js';
 export { RuntimeHealthMetrics, type RuntimeHealthReport } from './metrics/RuntimeHealthMetrics.js';
 export { MetricsAggregator } from './metrics/MetricsAggregator.js';
+export type { Goal, GoalType, GoalPriority, GoalStatus, GoalConstraint, AcceptanceCriterion, GoalResult } from './goals/Goal.js';
+export { GoalDecomposer } from './goals/GoalDecomposer.js';
+export { ExecutionGraph } from './planning/ExecutionGraph.js';
+export type { ExecutionNode, ExecutionEdge } from './planning/ExecutionGraph.js';
+export { PlanGenerator } from './planning/PlanGenerator.js';
+export type { ExecutionStep as GoalExecutionStep, ExecutionPlan as GoalExecutionPlan } from './planning/PlanGenerator.js';
+export { AdaptivePlanner } from './planning/AdaptivePlanner.js';
+export { CheckpointManager } from './autonomous-execution/ExecutionCheckpoint.js';
+export type { RollbackPoint, ExecutionState, Checkpoint } from './autonomous-execution/ExecutionCheckpoint.js';
+export { AutonomousExecutor } from './autonomous-execution/AutonomousExecutor.js';
+export type { ExecutorEvent } from './autonomous-execution/AutonomousExecutor.js';
+export { ConstraintEngine } from './constraints/ConstraintEngine.js';
+export type { ConstraintViolation } from './constraints/ConstraintEngine.js';
+export { ArchitecturalInvariantChecker } from './constraints/ArchitecturalInvariant.js';
+export type { Invariant } from './constraints/ArchitecturalInvariant.js';
+export { StrategyMemory } from './strategic-memory/StrategyMemory.js';
+export type { StrategyRecord } from './strategic-memory/StrategyMemory.js';
+export { PlanningHeuristics } from './strategic-memory/PlanningHeuristics.js';
+export { PlanningMetrics } from './planning-metrics/PlanningMetrics.js';
+export type { PlanMetricRecord } from './planning-metrics/PlanningMetrics.js';
 //# sourceMappingURL=index.d.ts.map

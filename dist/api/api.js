@@ -25,6 +25,12 @@ const WorkingMemory_js_1 = require("../hierarchical-memory/WorkingMemory.js");
 const EpisodicMemory_js_1 = require("../hierarchical-memory/EpisodicMemory.js");
 const SemanticMemory_js_1 = require("../hierarchical-memory/SemanticMemory.js");
 const ProceduralMemory_js_1 = require("../hierarchical-memory/ProceduralMemory.js");
+const GoalDecomposer_js_1 = require("../goals/GoalDecomposer.js");
+const PlanGenerator_js_1 = require("../planning/PlanGenerator.js");
+const AdaptivePlanner_js_1 = require("../planning/AdaptivePlanner.js");
+const ExecutionCheckpoint_js_1 = require("../autonomous-execution/ExecutionCheckpoint.js");
+const AutonomousExecutor_js_1 = require("../autonomous-execution/AutonomousExecutor.js");
+const PlanningMetrics_js_1 = require("../planning-metrics/PlanningMetrics.js");
 class CodeBrain {
     db;
     embedder;
@@ -168,6 +174,69 @@ class CodeBrain {
             claims = symbols.flatMap(s => this.claimsEngine.getClaimsForSymbol(s.id));
         }
         return this.contradictionDetector.detect(claims);
+    }
+    // ── v4.0: Goal-Oriented Autonomous Planning ──────────────────────────────────
+    _goalDecomposer = new GoalDecomposer_js_1.GoalDecomposer();
+    _planGenerator = new PlanGenerator_js_1.PlanGenerator();
+    _adaptivePlanner = new AdaptivePlanner_js_1.AdaptivePlanner();
+    _checkpointManager = new ExecutionCheckpoint_js_1.CheckpointManager();
+    _autonomousExecutor = new AutonomousExecutor_js_1.AutonomousExecutor(this._adaptivePlanner, this._checkpointManager);
+    _planningMetrics = new PlanningMetrics_js_1.PlanningMetrics();
+    _executionPlans = new Map();
+    createGoal(description, type, options = {}) {
+        const id = `goal-${Math.random().toString(36).slice(2, 10)}-${Date.now()}`;
+        const goal = {
+            id,
+            description,
+            type,
+            priority: options.priority ?? 'medium',
+            constraints: options.constraints ?? {},
+            acceptanceCriteria: options.acceptanceCriteria ?? [],
+            createdAt: new Date(),
+            status: 'pending',
+            parentGoalId: options.parentGoalId,
+            subGoals: options.subGoals,
+            metadata: options.metadata,
+        };
+        return goal;
+    }
+    planGoal(goal) {
+        const subGoals = this._goalDecomposer.decompose(goal);
+        const goalWithSubs = { ...goal, subGoals };
+        const plan = this._planGenerator.generate([goalWithSubs]);
+        this._executionPlans.set(plan.id, plan);
+        return plan;
+    }
+    async executeGoal(goal) {
+        const plan = this.planGoal(goal);
+        const results = await this._autonomousExecutor.execute(plan, { dryRun: false });
+        this._planningMetrics.record({
+            planId: plan.id,
+            successRate: results.filter(r => r.outcome === 'success').length / Math.max(1, results.length),
+            replanningCount: 0,
+            avgRollbackDepth: results.reduce((s, r) => s + r.stepsRolledBack, 0) / Math.max(1, results.length),
+            avgExecutionDepth: results.reduce((s, r) => s + r.stepsExecuted, 0) / Math.max(1, results.length),
+            adaptiveRecoverySuccess: 1,
+            plannerConfidence: 0.8,
+            graphComplexity: plan.steps.length,
+            timestamp: new Date(),
+        });
+        return results;
+    }
+    pauseExecution() {
+        this._autonomousExecutor.pause();
+    }
+    resumeExecution() {
+        this._autonomousExecutor.resume();
+    }
+    abortExecution() {
+        this._autonomousExecutor.abort();
+    }
+    getExecutionGraph(planId) {
+        return this._executionPlans.get(planId)?.graph;
+    }
+    getPlanningMetrics() {
+        return this._planningMetrics.summary();
     }
     // ── v3.5: Cognitive health API ───────────────────────────────────────────────
     getCognitiveHealth() {

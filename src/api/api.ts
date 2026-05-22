@@ -25,6 +25,14 @@ import { EpisodicMemory } from '../hierarchical-memory/EpisodicMemory.js';
 import { SemanticMemory } from '../hierarchical-memory/SemanticMemory.js';
 import { ProceduralMemory } from '../hierarchical-memory/ProceduralMemory.js';
 import { type CognitiveHealthSnapshot } from '../metrics/CognitiveMetrics.js';
+import { Goal, GoalType, GoalResult } from '../goals/Goal.js';
+import { GoalDecomposer } from '../goals/GoalDecomposer.js';
+import { PlanGenerator, ExecutionPlan } from '../planning/PlanGenerator.js';
+import { AdaptivePlanner } from '../planning/AdaptivePlanner.js';
+import { ExecutionGraph } from '../planning/ExecutionGraph.js';
+import { CheckpointManager } from '../autonomous-execution/ExecutionCheckpoint.js';
+import { AutonomousExecutor } from '../autonomous-execution/AutonomousExecutor.js';
+import { PlanningMetrics } from '../planning-metrics/PlanningMetrics.js';
 
 export class CodeBrain {
   private db: DB;
@@ -199,6 +207,78 @@ export class CodeBrain {
       claims = symbols.flatMap(s => this.claimsEngine.getClaimsForSymbol(s.id));
     }
     return this.contradictionDetector.detect(claims);
+  }
+
+  // ── v4.0: Goal-Oriented Autonomous Planning ──────────────────────────────────
+  private _goalDecomposer = new GoalDecomposer();
+  private _planGenerator = new PlanGenerator();
+  private _adaptivePlanner = new AdaptivePlanner();
+  private _checkpointManager = new CheckpointManager();
+  private _autonomousExecutor = new AutonomousExecutor(this._adaptivePlanner, this._checkpointManager);
+  private _planningMetrics = new PlanningMetrics();
+  private _executionPlans = new Map<string, ExecutionPlan>();
+
+  createGoal(description: string, type: GoalType, options: Partial<Goal> = {}): Goal {
+    const id = `goal-${Math.random().toString(36).slice(2, 10)}-${Date.now()}`;
+    const goal: Goal = {
+      id,
+      description,
+      type,
+      priority: options.priority ?? 'medium',
+      constraints: options.constraints ?? {},
+      acceptanceCriteria: options.acceptanceCriteria ?? [],
+      createdAt: new Date(),
+      status: 'pending',
+      parentGoalId: options.parentGoalId,
+      subGoals: options.subGoals,
+      metadata: options.metadata,
+    };
+    return goal;
+  }
+
+  planGoal(goal: Goal): ExecutionPlan {
+    const subGoals = this._goalDecomposer.decompose(goal);
+    const goalWithSubs: Goal = { ...goal, subGoals };
+    const plan = this._planGenerator.generate([goalWithSubs]);
+    this._executionPlans.set(plan.id, plan);
+    return plan;
+  }
+
+  async executeGoal(goal: Goal): Promise<GoalResult[]> {
+    const plan = this.planGoal(goal);
+    const results = await this._autonomousExecutor.execute(plan, { dryRun: false });
+    this._planningMetrics.record({
+      planId: plan.id,
+      successRate: results.filter(r => r.outcome === 'success').length / Math.max(1, results.length),
+      replanningCount: 0,
+      avgRollbackDepth: results.reduce((s, r) => s + r.stepsRolledBack, 0) / Math.max(1, results.length),
+      avgExecutionDepth: results.reduce((s, r) => s + r.stepsExecuted, 0) / Math.max(1, results.length),
+      adaptiveRecoverySuccess: 1,
+      plannerConfidence: 0.8,
+      graphComplexity: plan.steps.length,
+      timestamp: new Date(),
+    });
+    return results;
+  }
+
+  pauseExecution(): void {
+    this._autonomousExecutor.pause();
+  }
+
+  resumeExecution(): void {
+    this._autonomousExecutor.resume();
+  }
+
+  abortExecution(): void {
+    this._autonomousExecutor.abort();
+  }
+
+  getExecutionGraph(planId: string): ExecutionGraph | undefined {
+    return this._executionPlans.get(planId)?.graph;
+  }
+
+  getPlanningMetrics(): ReturnType<PlanningMetrics['summary']> {
+    return this._planningMetrics.summary();
   }
 
   // ── v3.5: Cognitive health API ───────────────────────────────────────────────
