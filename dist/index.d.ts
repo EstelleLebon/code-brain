@@ -81,6 +81,12 @@ export { ProceduralMemory, type ProceduralPattern } from './hierarchical-memory/
 export { CognitiveMetrics, type CognitiveMetricsSnapshot, type CognitiveHealthSnapshot } from './metrics/CognitiveMetrics.js';
 export { RuntimeHealthMetrics, type RuntimeHealthReport } from './metrics/RuntimeHealthMetrics.js';
 export { MetricsAggregator } from './metrics/MetricsAggregator.js';
+export { EventStore, type EventFilter, type EventStoreSnapshot } from './event-store/EventStore.js';
+export { type CognitiveEvent, type CognitiveEventType, createEvent, makeEventId } from './event-store/CognitiveEvent.js';
+export type { GoalCreatedEvent, PlanGeneratedEvent, StepExecutedEvent, RuntimeValidatedEvent, LearningObservedEvent, RecoveryTriggeredEvent, RollbackAppliedEvent, ConstraintViolationEvent, ModeSwitchedEvent, } from './event-store/CognitiveEvent.js';
+export { TimelineBuilder, type ExecutionTimeline, type TimelineNode, type CriticalMoment, type ModeTransition, } from './event-store/ExecutionTimeline.js';
+export { SnapshotManager, type CognitiveSnapshot, type MemorySnapshot, type TrustSnapshot, type SnapshotSource, } from './event-store/SnapshotManager.js';
+export { ReplayEngine, type ReplayResult, type DryReplayResult, type EventHandler } from './event-store/ReplayEngine.js';
 export type { Goal, GoalType, GoalPriority, GoalStatus, GoalConstraint, AcceptanceCriterion, GoalResult } from './goals/Goal.js';
 export { GoalDecomposer } from './goals/GoalDecomposer.js';
 export { ExecutionGraph } from './planning/ExecutionGraph.js';

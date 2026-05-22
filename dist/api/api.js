@@ -31,6 +31,10 @@ const AdaptivePlanner_js_1 = require("../planning/AdaptivePlanner.js");
 const ExecutionCheckpoint_js_1 = require("../autonomous-execution/ExecutionCheckpoint.js");
 const AutonomousExecutor_js_1 = require("../autonomous-execution/AutonomousExecutor.js");
 const PlanningMetrics_js_1 = require("../planning-metrics/PlanningMetrics.js");
+const EventStore_js_1 = require("../event-store/EventStore.js");
+const SnapshotManager_js_1 = require("../event-store/SnapshotManager.js");
+const ReplayEngine_js_1 = require("../event-store/ReplayEngine.js");
+const ExecutionTimeline_js_1 = require("../event-store/ExecutionTimeline.js");
 class CodeBrain {
     db;
     embedder;
@@ -248,6 +252,38 @@ class CodeBrain {
     }
     getCognitiveSummary() {
         return this.feedbackLoop.summary();
+    }
+    // ── v4.5: Event-Sourced Cognitive Runtime ────────────────────────────────────
+    eventStore = new EventStore_js_1.EventStore();
+    _snapshotManager = new SnapshotManager_js_1.SnapshotManager();
+    _replayEngine = new ReplayEngine_js_1.ReplayEngine(this.eventStore, this._snapshotManager);
+    _timelineBuilder = new ExecutionTimeline_js_1.TimelineBuilder();
+    async replayExecution(executionId) {
+        return this._replayEngine.replay(executionId);
+    }
+    createCognitiveSnapshot(executionId, metadata = {}) {
+        const source = {
+            getWorkingMemoryState: () => this.workingMemory.snapshot(),
+            getEpisodicMemoryState: () => this.episodicMemory.all(),
+            getSemanticMemoryState: () => this.semanticMemory.all(),
+            getProceduralMemoryState: () => this.proceduralMemory.all(),
+            getTrustState: () => {
+                const s = this.feedbackLoop.adaptiveTrust.getState();
+                return {
+                    successCount: s.recentSuccesses,
+                    failureCount: s.recentFailures,
+                    chunkReliability: {},
+                };
+            },
+        };
+        return this._snapshotManager.createSnapshot(executionId, source, metadata);
+    }
+    restoreCognitiveSnapshot(snapshotId) {
+        return this._snapshotManager.restoreSnapshot(snapshotId);
+    }
+    getExecutionTimeline(executionId) {
+        const events = this.eventStore.stream(executionId);
+        return this._timelineBuilder.build(events);
     }
     close() {
         this.watcher.stop();

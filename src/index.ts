@@ -114,6 +114,36 @@ export { CognitiveMetrics, type CognitiveMetricsSnapshot, type CognitiveHealthSn
 export { RuntimeHealthMetrics, type RuntimeHealthReport } from './metrics/RuntimeHealthMetrics.js';
 export { MetricsAggregator } from './metrics/MetricsAggregator.js';
 
+// v4.5 — Event-Sourced Cognitive Runtime
+export { EventStore, type EventFilter, type EventStoreSnapshot } from './event-store/EventStore.js';
+export { type CognitiveEvent, type CognitiveEventType, createEvent, makeEventId } from './event-store/CognitiveEvent.js';
+export type {
+  GoalCreatedEvent,
+  PlanGeneratedEvent,
+  StepExecutedEvent,
+  RuntimeValidatedEvent,
+  LearningObservedEvent,
+  RecoveryTriggeredEvent,
+  RollbackAppliedEvent,
+  ConstraintViolationEvent,
+  ModeSwitchedEvent,
+} from './event-store/CognitiveEvent.js';
+export {
+  TimelineBuilder,
+  type ExecutionTimeline,
+  type TimelineNode,
+  type CriticalMoment,
+  type ModeTransition,
+} from './event-store/ExecutionTimeline.js';
+export {
+  SnapshotManager,
+  type CognitiveSnapshot,
+  type MemorySnapshot,
+  type TrustSnapshot,
+  type SnapshotSource,
+} from './event-store/SnapshotManager.js';
+export { ReplayEngine, type ReplayResult, type DryReplayResult, type EventHandler } from './event-store/ReplayEngine.js';
+
 // v4.0 — Goal-Oriented Autonomous Planning Phase
 export type { Goal, GoalType, GoalPriority, GoalStatus, GoalConstraint, AcceptanceCriterion, GoalResult } from './goals/Goal.js';
 export { GoalDecomposer } from './goals/GoalDecomposer.js';

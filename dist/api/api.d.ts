@@ -15,6 +15,10 @@ import { Goal, GoalType, GoalResult } from '../goals/Goal.js';
 import { ExecutionPlan } from '../planning/PlanGenerator.js';
 import { ExecutionGraph } from '../planning/ExecutionGraph.js';
 import { PlanningMetrics } from '../planning-metrics/PlanningMetrics.js';
+import { EventStore } from '../event-store/EventStore.js';
+import { type CognitiveSnapshot } from '../event-store/SnapshotManager.js';
+import { type ReplayResult } from '../event-store/ReplayEngine.js';
+import { type ExecutionTimeline } from '../event-store/ExecutionTimeline.js';
 export declare class CodeBrain {
     private db;
     private embedder;
@@ -84,6 +88,14 @@ export declare class CodeBrain {
     getPlanningMetrics(): ReturnType<PlanningMetrics['summary']>;
     getCognitiveHealth(): CognitiveHealthSnapshot;
     getCognitiveSummary(): import("../cognitive-loop/CognitiveFeedbackLoop.js").FeedbackLoopSummary;
+    readonly eventStore: EventStore;
+    private _snapshotManager;
+    private _replayEngine;
+    private _timelineBuilder;
+    replayExecution(executionId: string): Promise<ReplayResult>;
+    createCognitiveSnapshot(executionId: string, metadata?: Record<string, unknown>): CognitiveSnapshot;
+    restoreCognitiveSnapshot(snapshotId: string): CognitiveSnapshot | undefined;
+    getExecutionTimeline(executionId: string): ExecutionTimeline;
     close(): void;
 }
 //# sourceMappingURL=api.d.ts.map
