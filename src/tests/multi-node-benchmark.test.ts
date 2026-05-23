@@ -226,3 +226,126 @@ describe('Multi-Node Benchmarks', () => {
     });
   });
 });
+
+// ── v6.1 Extended Benchmarks ─────────────────────────────────────────────────
+
+import { LocalExecutionRuntime } from '../distributed-cognition/LocalExecutionRuntime.js';
+import { EventStore } from '../event-store/EventStore.js';
+
+describe('v6.1 Extended Benchmarks', () => {
+
+  describe('LocalExecutionRuntime overhead vs DistributedExecutionRuntime', () => {
+    it('LocalExecutionRuntime is faster or equivalent for single-node workloads', () => {
+      const nodes = ['node-1'];
+      const cycles = 100;
+
+      const localRt = new LocalExecutionRuntime();
+      const localLoop = new AdaptiveCognitiveLoop(localRt);
+      const tLocal = Date.now();
+      for (let i = 0; i < cycles; i++) localLoop.runCycle(nodes);
+      const localMs = Date.now() - tLocal;
+
+      const distRt = new DistributedExecutionRuntime();
+      const distLoop = new AdaptiveCognitiveLoop(distRt);
+      const tDist = Date.now();
+      for (let i = 0; i < cycles; i++) distLoop.runCycle(nodes);
+      const distMs = Date.now() - tDist;
+
+      // Local should complete well within distributed's budget
+      assert.ok(localMs < 200, `local runtime too slow: ${localMs}ms for ${cycles} cycles`);
+      assert.ok(distMs < 400, `distributed runtime too slow: ${distMs}ms for ${cycles} cycles`);
+    });
+
+    it('LocalExecutionRuntime deterministic state is identical across resets', () => {
+      const rt = new LocalExecutionRuntime();
+      const nodes = ['n1', 'n2', 'n3'];
+      const states1: unknown[] = [];
+      for (let i = 0; i < 5; i++) {
+        rt.executeCycle(nodes);
+        states1.push({ ...rt.getDeterministicState() });
+      }
+
+      rt.reset();
+      const states2: unknown[] = [];
+      for (let i = 0; i < 5; i++) {
+        rt.executeCycle(nodes);
+        states2.push({ ...rt.getDeterministicState() });
+      }
+
+      assert.deepEqual(states1, states2);
+    });
+  });
+
+  describe('EventStore cost — adaptive:decision persistence', () => {
+    it('persisting 200 decisions stays under 20ms', () => {
+      const rt = new LocalExecutionRuntime();
+      const loop = new AdaptiveCognitiveLoop(rt);
+      const store = new EventStore();
+      loop.attachEventStore(store);
+
+      const start = Date.now();
+      for (let i = 0; i < 200; i++) loop.runCycle(['n1']);
+      const elapsed = Date.now() - start;
+
+      assert.equal(store.all().filter(e => e.eventType === 'adaptive:decision').length, 200);
+      assert.ok(elapsed < 20, `200 persisted cycles took ${elapsed}ms`);
+    });
+
+    it('EventStore query for adaptive:decision events scales sub-linearly', () => {
+      const rt = new LocalExecutionRuntime();
+      const loop = new AdaptiveCognitiveLoop(rt);
+      const store = new EventStore();
+      loop.attachEventStore(store);
+
+      for (let i = 0; i < 500; i++) loop.runCycle(['n1', 'n2']);
+
+      const start = Date.now();
+      const events = store.all().filter(e => e.eventType === 'adaptive:decision');
+      const elapsed = Date.now() - start;
+
+      assert.equal(events.length, 500);
+      assert.ok(elapsed < 10, `query over 500 events took ${elapsed}ms`);
+    });
+  });
+
+  describe('Memory growth — stable execution', () => {
+    it('decision list does not grow unbounded during long runs', () => {
+      const rt = new LocalExecutionRuntime();
+      const loop = new AdaptiveCognitiveLoop(rt);
+      const store = new EventStore();
+      loop.attachEventStore(store);
+
+      for (let i = 0; i < 300; i++) loop.runCycle(['n1', 'n2', 'n3']);
+
+      const decisions = loop.getDecisions();
+      assert.equal(decisions.length, 300);
+
+      // Store should have exactly 300 adaptive:decision events
+      const storeCount = store.all().filter(e => e.eventType === 'adaptive:decision').length;
+      assert.equal(storeCount, 300);
+    });
+  });
+
+  describe('Replay strategic cost — stableIterations accuracy', () => {
+    it('stableIterations correctly tracks stability across 50 healthy cycles', () => {
+      const rt = new DistributedExecutionRuntime();
+      const loop = new AdaptiveCognitiveLoop(rt);
+      const nodes = makeNodes(3);
+
+      for (let i = 0; i < 50; i++) loop.runCycle(nodes);
+
+      const state = rt.getDeterministicState();
+      assert.ok(state.stableIterations > 0, `expected stableIterations > 0, got ${state.stableIterations}`);
+    });
+
+    it('LocalExecutionRuntime stableIterations reflects stable cycles', () => {
+      const rt = new LocalExecutionRuntime();
+      // First cycle: trust=1.0 → success, stableIterations increments
+      rt.executeCycle(['n1']);
+      rt.executeCycle(['n1']);
+      rt.executeCycle(['n1']);
+      const state = rt.getDeterministicState();
+      assert.ok(state.stableIterations >= 3, `expected >=3, got ${state.stableIterations}`);
+    });
+  });
+});

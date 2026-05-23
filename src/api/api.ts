@@ -145,6 +145,7 @@ export class CodeBrain {
       splitBrainDetector: this.splitBrainDetector,
     });
     this.adaptiveLoop = new AdaptiveCognitiveLoop(this.distributedRuntime);
+    this.adaptiveLoop.attachEventStore(this.eventStore);
 
     // Load existing edges into graph
     this.loadGraphFromDB();
@@ -303,6 +304,11 @@ export class CodeBrain {
   async executeGoal(goal: Goal): Promise<GoalResult[]> {
     const plan = this.planGoal(goal);
     const results = await this._autonomousExecutor.execute(plan, { dryRun: false });
+
+    // v6.1 — Automatic adaptive cycle after goal execution
+    const nodeIds = this.getActiveNodeIds();
+    this.adaptiveLoop.runCycle(nodeIds);
+
     this._planningMetrics.record({
       planId: plan.id,
       successRate: results.filter(r => r.outcome === 'success').length / Math.max(1, results.length),
@@ -459,7 +465,18 @@ export class CodeBrain {
   }
 
   executeDistributedGoal(goal: Goal, plan: ExecutionPlan): DistributedExecution {
-    return this.distributedExecutor.executeDistributedGoal(goal, plan);
+    const result = this.distributedExecutor.executeDistributedGoal(goal, plan);
+
+    // v6.1 — Automatic adaptive cycle after distributed goal execution
+    const nodeIds = this.getActiveNodeIds();
+    this.adaptiveLoop.runCycle(nodeIds);
+
+    return result;
+  }
+
+  private getActiveNodeIds(): string[] {
+    const nodes = this.nodeRegistry.availableNodes().map(n => n.nodeId);
+    return nodes.length > 0 ? nodes : ['local'];
   }
 
   simulatePartition(nodeId: string): string {

@@ -179,7 +179,7 @@ export class DistributedExecutionRuntime implements CognitiveExecutionRuntime {
         logicalClock: this.executionCounter,
         iteration: state.iteration,
         aggression: state.aggression,
-        stableIterations: 0, // loop does not expose stableIterations publicly
+        stableIterations: this.loop.stableIterationCount,
         rebalancePending: state.rebalancePending,
       };
     } catch {

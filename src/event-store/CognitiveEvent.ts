@@ -7,7 +7,8 @@ export type CognitiveEventType =
   | 'recovery:triggered'
   | 'rollback:applied'
   | 'constraint:violated'
-  | 'mode:switched';
+  | 'mode:switched'
+  | 'adaptive:decision';
 
 interface BaseEvent {
   readonly id: string;
@@ -104,6 +105,21 @@ export interface ModeSwitchedEvent extends BaseEvent {
   };
 }
 
+export interface AdaptiveDecisionEvent extends BaseEvent {
+  readonly eventType: 'adaptive:decision';
+  readonly payload: {
+    iteration: number;
+    strategy: string;
+    score: number;
+    outcome: string;
+    adaptationReason: string;
+    affectedNodes: string[];
+    recoveryTriggered: boolean;
+    globalTrust: number;
+    consensusHealth: number;
+  };
+}
+
 export type CognitiveEvent =
   | GoalCreatedEvent
   | PlanGeneratedEvent
@@ -113,7 +129,8 @@ export type CognitiveEvent =
   | RecoveryTriggeredEvent
   | RollbackAppliedEvent
   | ConstraintViolationEvent
-  | ModeSwitchedEvent;
+  | ModeSwitchedEvent
+  | AdaptiveDecisionEvent;
 
 let _seq = 0;
 

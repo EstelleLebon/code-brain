@@ -294,6 +294,91 @@ export class SplitBrainDetector {
     return 'critical';
   }
 
-  private checkConsistency(): void { /* event-driven hook */ }
-  private checkMemoryDivergence(): void { /* event-driven hook */ }
+  private checkConsistency(): void {
+    const fingerprints = [...this.nodeFingerprints.entries()];
+    if (fingerprints.length < 2) return;
+
+    // Detect sustained vector clock drift
+    const versions = [...this.nodeMemoryVersions.entries()];
+    if (versions.length >= 2) {
+      const max = Math.max(...versions.map(([, v]) => v));
+      const min = Math.min(...versions.map(([, v]) => v));
+      const skew = max - min;
+      if (skew > 3) {
+        const severity = this.computeSeverity(skew);
+        const drifted = versions.filter(([, v]) => v < max - 2).map(([id]) => id);
+        this.emitAlert({
+          kind: 'memory_version_skew',
+          severity,
+          implicatedNodes: drifted,
+          recommendation: severity === 'critical' ? 'quarantine' : 'reconcile',
+        });
+      }
+    }
+
+    // Detect sustained fingerprint divergence
+    const groups = new Map<string, string[]>();
+    for (const [nodeId, fp] of fingerprints) {
+      const bucket = groups.get(fp) ?? [];
+      bucket.push(nodeId);
+      groups.set(fp, bucket);
+    }
+    if (groups.size > 1) {
+      const sorted = [...groups.values()].sort((a, b) => b.length - a.length);
+      const minorities = sorted.slice(1).flat();
+      const ratio = minorities.length / fingerprints.length;
+      if (ratio >= 0.25) {
+        this.emitAlert({
+          kind: 'fingerprint_divergence',
+          severity: ratio >= 0.5 ? 'severe' : 'moderate',
+          implicatedNodes: minorities,
+          recommendation: ratio >= 0.5 ? 'quarantine' : 'degrade',
+        });
+      }
+    }
+  }
+
+  private checkMemoryDivergence(): void {
+    const versions = [...this.nodeMemoryVersions.entries()];
+    if (versions.length < 2) return;
+
+    const max = Math.max(...versions.map(([, v]) => v));
+    const min = Math.min(...versions.map(([, v]) => v));
+    const delta = max - min;
+
+    if (delta > 5) {
+      const severity = this.computeSeverity(delta);
+      const behind = versions.filter(([, v]) => v < max - 2).map(([id]) => id);
+      const ahead = versions.filter(([, v]) => v >= max - 2).map(([id]) => id);
+      this.emitAlert({
+        kind: 'memory_version_skew',
+        severity,
+        implicatedNodes: [...behind, ...ahead],
+        recommendation: severity === 'critical' ? 'quarantine' : 'reconcile',
+      });
+      this.detections.push({
+        detectionId: `sbd-${this.clock++}`,
+        detectedAt: this.clock,
+        severity,
+        divergedNodes: [ahead, behind],
+        divergenceType: 'memory_divergence',
+        resolved: false,
+      });
+    }
+
+    // Propagate replay incompatibility found after memory event
+    const traces = [...this.replayTraces.entries()];
+    if (traces.length >= 2) {
+      const referenceKey = traces[0][1].join(',');
+      const incompatible = traces.slice(1).filter(([, t]) => t.join(',') !== referenceKey).map(([id]) => id);
+      if (incompatible.length > 0) {
+        this.emitAlert({
+          kind: 'replay_incompatibility',
+          severity: 'moderate',
+          implicatedNodes: incompatible,
+          recommendation: 'reconcile',
+        });
+      }
+    }
+  }
 }

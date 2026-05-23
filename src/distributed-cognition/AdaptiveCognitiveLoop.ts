@@ -3,6 +3,8 @@ import type {
   ClusterHealthSnapshot,
   CycleResult,
 } from './CognitiveExecutionRuntime.js';
+import type { EventStore } from '../event-store/EventStore.js';
+import { createEvent } from '../event-store/CognitiveEvent.js';
 
 export type CognitiveStrategy = 'aggressive' | 'balanced' | 'conservative' | 'recovery';
 
@@ -38,6 +40,7 @@ const DEFAULT_CONFIG: AdaptiveLoopConfig = {
 export class AdaptiveCognitiveLoop {
   private readonly runtime: CognitiveExecutionRuntime;
   private readonly config: AdaptiveLoopConfig;
+  private eventStore?: EventStore;
 
   private iteration = 0;
   private strategy: CognitiveStrategy = 'balanced';
@@ -48,6 +51,11 @@ export class AdaptiveCognitiveLoop {
   constructor(runtime: CognitiveExecutionRuntime, config: Partial<AdaptiveLoopConfig> = {}) {
     this.runtime = runtime;
     this.config = { ...DEFAULT_CONFIG, ...config };
+  }
+
+  /** Attach an EventStore to persist each AdaptiveLoopDecision as a replayable event. */
+  attachEventStore(store: EventStore): void {
+    this.eventStore = store;
   }
 
   /** Run one complete adaptive cycle against the given node list. */
@@ -87,7 +95,28 @@ export class AdaptiveCognitiveLoop {
       adaptationReason: reason,
     };
     this.decisions.push(decision);
+    this.persistDecision(decision);
     return decision;
+  }
+
+  private persistDecision(decision: AdaptiveLoopDecision): void {
+    if (!this.eventStore) return;
+    const event = createEvent({
+      executionId: decision.cycleResult.executionId,
+      eventType: 'adaptive:decision',
+      payload: {
+        iteration: decision.iteration,
+        strategy: decision.strategy,
+        score: decision.score,
+        outcome: decision.cycleResult.outcome,
+        adaptationReason: decision.adaptationReason,
+        affectedNodes: decision.cycleResult.affectedNodes,
+        recoveryTriggered: decision.cycleResult.recoveryTriggered,
+        globalTrust: decision.health.globalTrust,
+        consensusHealth: decision.health.consensusHealth,
+      },
+    });
+    this.eventStore.append(event);
   }
 
   /** Recover a specific node without running a full cycle. */

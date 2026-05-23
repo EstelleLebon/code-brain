@@ -27,3 +27,6 @@ export type {
   AdaptiveLoopConfig,
 } from './AdaptiveCognitiveLoop.js';
 export { AdaptiveCognitiveLoop } from './AdaptiveCognitiveLoop.js';
+
+// v6.1 — Local (mono-node) runtime
+export { LocalExecutionRuntime } from './LocalExecutionRuntime.js';
