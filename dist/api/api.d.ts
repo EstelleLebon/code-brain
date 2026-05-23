@@ -28,6 +28,28 @@ import { RecoveryEvaluator } from '../reliability/RecoveryEvaluator.js';
 import { ChaosEngine } from '../chaos-engineering/ChaosEngine.js';
 import { type ChaosPolicyLevel } from '../chaos-engineering/ChaosPolicy.js';
 import { DeterminismValidator, type DeterminismReport } from '../reproducibility/DeterminismValidator.js';
+import { DistributedEventBus } from '../distributed/DistributedEventBus.js';
+import { CognitiveNode, type NodeCapabilities } from '../distributed/CognitiveNode.js';
+import { NodeRegistry } from '../distributed/NodeRegistry.js';
+import { DistributedPlanner } from '../distributed-planning/DistributedPlanner.js';
+import { ConsensusEngine, type ConsensusProposal } from '../distributed-planning/ConsensusEngine.js';
+export type { ConsensusResult } from '../distributed-planning/ConsensusEngine.js';
+import { DistributedExecutor, type DistributedExecution } from '../distributed-execution/DistributedExecutor.js';
+import { MemoryReplication, type ReplicatedMemoryEntry } from '../distributed-memory/MemoryReplication.js';
+import { NetworkPartitionSimulator } from '../network-simulation/NetworkPartitionSimulator.js';
+import { SplitBrainDetector } from '../distributed-reliability/SplitBrainDetector.js';
+import { DistributedReliabilityMetrics } from '../distributed-reliability/DistributedReliabilityMetrics.js';
+import { CrossNodeReplayEngine } from '../distributed-replay/CrossNodeReplayEngine.js';
+import { DistributedReplayEvent } from '../distributed-replay/DistributedReplayEvent.js';
+import { DistributedCognitiveLoop } from '../distributed-cognition/DistributedCognitiveLoop.js';
+import { ClusterTrustManager } from '../distributed-cognition/ClusterTrustManager.js';
+import { ConsensusHealthMonitor } from '../distributed-cognition/ConsensusHealthMonitor.js';
+import { DistributedRecoveryCoordinator } from '../distributed-cognition/DistributedRecoveryCoordinator.js';
+import { MemoryReconciliation } from '../distributed-memory/MemoryReconciliation.js';
+import { DistributedExecutionRuntime } from '../distributed-cognition/DistributedExecutionRuntime.js';
+import { AdaptiveCognitiveLoop } from '../distributed-cognition/AdaptiveCognitiveLoop.js';
+import type { AdaptiveLoopDecision } from '../distributed-cognition/AdaptiveCognitiveLoop.js';
+import type { ClusterHealthSnapshot } from '../distributed-cognition/CognitiveExecutionRuntime.js';
 export declare class CodeBrain {
     private db;
     private embedder;
@@ -117,6 +139,55 @@ export declare class CodeBrain {
     validateDeterminism(executionId: string): DeterminismReport;
     getReliabilitySnapshot(): ReliabilitySnapshot;
     getStabilityReport(): StabilityReport;
+    readonly distributedBus: DistributedEventBus;
+    readonly nodeRegistry: NodeRegistry;
+    readonly distributedPlanner: DistributedPlanner;
+    readonly consensusEngine: ConsensusEngine;
+    readonly distributedExecutor: DistributedExecutor;
+    readonly memoryReplication: MemoryReplication;
+    readonly networkSimulator: NetworkPartitionSimulator;
+    readonly splitBrainDetector: SplitBrainDetector;
+    readonly distributedReliabilityMetrics: DistributedReliabilityMetrics;
+    readonly clusterTrustManager: ClusterTrustManager;
+    readonly consensusHealthMonitor: ConsensusHealthMonitor;
+    readonly distributedRecoveryCoordinator: DistributedRecoveryCoordinator;
+    readonly distributedLoop: DistributedCognitiveLoop;
+    readonly reconciliationEngine: MemoryReconciliation;
+    readonly distributedRuntime: DistributedExecutionRuntime;
+    readonly adaptiveLoop: AdaptiveCognitiveLoop;
+    createNode(nodeId: string, capabilities?: Partial<NodeCapabilities>): CognitiveNode;
+    registerNode(node: CognitiveNode): void;
+    executeDistributedGoal(goal: Goal, plan: ExecutionPlan): DistributedExecution;
+    simulatePartition(nodeId: string): string;
+    runConsensusVote(proposal: ConsensusProposal): void;
+    replicateMemory(entry: ReplicatedMemoryEntry, targetNodeId: string): void;
+    get crossNodeReplayEngine(): CrossNodeReplayEngine;
+    replayDistributedExecution(executionId: string, eventsByNode: Map<string, DistributedReplayEvent[]>): DistributedReplayEvent[];
+    validateDistributedDeterminism(executionId: string, eventsByNode: Map<string, DistributedReplayEvent[]>): {
+        deterministic: boolean;
+        divergencePoints: string[];
+        replayHash: string;
+        memoryHash: string;
+        eventOrderHash: string;
+    };
+    injectNetworkPartition(nodeIds: string[], seed?: number): import('../chaos-engineering/ChaosNetworkScenario.js').NetworkScenarioResult;
+    healNetworkPartition(partitionId: string): void;
+    triggerClusterRecovery(reason: string): import('../distributed-cognition/DistributedRecoveryCoordinator.js').RecoveryPlan;
+    reconcileClusterMemory(entriesByKey: Map<string, import('../distributed-memory/MemoryReconciliation.js').MemoryEntry[]>): Map<string, import('../distributed-memory/MemoryReconciliation.js').ReconciliationResult>;
+    getClusterHealth(): {
+        globalTrust: number;
+        consensusHealth: number;
+        anomalies: import('../distributed-cognition/ConsensusHealthMonitor.js').ConsensusAnomaly[];
+        activeRecoveryPlans: number;
+    };
+    /** Run one adaptive cognitive cycle across the given node IDs. */
+    runAdaptiveCycle(nodeIds: string[]): AdaptiveLoopDecision;
+    /** Get a unified cluster health snapshot from the runtime layer. */
+    getRuntimeClusterHealth(): ClusterHealthSnapshot;
+    /** Recover a specific node via the runtime (no replay or clock details exposed). */
+    recoverDistributedNode(nodeId: string, reason: string): boolean;
+    /** Synchronize cluster state (reconciliation + rebalance) via the runtime. */
+    synchronizeDistributedCluster(nodeIds: string[]): void;
     close(): void;
 }
 //# sourceMappingURL=api.d.ts.map

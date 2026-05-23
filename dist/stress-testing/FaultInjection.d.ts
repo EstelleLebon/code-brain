@@ -35,5 +35,14 @@ export declare class FaultInjector {
      */
     shouldTrigger(faultType: FaultType, executionId?: string): FaultInjectionResult;
     resetSeed(seed: number): void;
+    private _networkFaults;
+    injectNetworkFault(type: 'drop' | 'duplicate' | 'delay', nodeId: string, probability: number, seed?: number): void;
+    getInjectedFaults(): Array<{
+        type: string;
+        nodeId: string;
+        probability: number;
+        seed: number;
+    }>;
+    clearFaults(): void;
 }
 //# sourceMappingURL=FaultInjection.d.ts.map

@@ -11,6 +11,8 @@ class ChaosEngine {
     _activeFaultIds = [];
     _intervalHandle;
     _tickHistory = [];
+    _activeScenarios = new Map();
+    _scenarioCounter = 0;
     constructor(injector, policyLevel = 'SAFE') {
         this._injector = injector ?? new FaultInjection_js_1.FaultInjector();
         this._policy = ChaosPolicy_js_1.CHAOS_POLICIES[policyLevel];
@@ -95,6 +97,104 @@ class ChaosEngine {
     }
     injector() {
         return this._injector;
+    }
+    get activeScenarios() {
+        return new Map(this._activeScenarios);
+    }
+    _lcg(seed) {
+        return ((1664525 * seed + 1013904223) & 0xffffffff) >>> 0;
+    }
+    _makeScenarioId(type) {
+        return `scenario-${type}-${++this._scenarioCounter}`;
+    }
+    injectPartition(nodeIds, seed) {
+        const s = seed ?? this._lcg(this._scenarioCounter + 1);
+        const s2 = this._lcg(s);
+        const scenarioId = this._makeScenarioId('partition');
+        const result = {
+            scenarioId,
+            type: 'partition',
+            affectedNodes: [...nodeIds],
+            messagesDropped: (s2 >>> 0) % (nodeIds.length * 3 + 1),
+            messagesDuplicated: 0,
+            partitionsCreated: 1,
+            recoveryTriggered: false,
+            deterministicSeed: s,
+        };
+        this._activeScenarios.set(scenarioId, result);
+        return result;
+    }
+    healPartition(partitionId) {
+        this._activeScenarios.delete(partitionId);
+    }
+    isolateLeader(leaderId, seed) {
+        const s = seed ?? this._lcg(this._scenarioCounter + 7);
+        const s2 = this._lcg(s);
+        const scenarioId = this._makeScenarioId('leader_isolation');
+        const result = {
+            scenarioId,
+            type: 'leader_isolation',
+            affectedNodes: [leaderId],
+            messagesDropped: (s2 >>> 0) % 5,
+            messagesDuplicated: 0,
+            partitionsCreated: 1,
+            recoveryTriggered: (this._lcg(s2) >>> 0) % 2 === 0,
+            deterministicSeed: s,
+        };
+        this._activeScenarios.set(scenarioId, result);
+        return result;
+    }
+    degradeConsensus(intensity, seed) {
+        const s = seed ?? this._lcg(this._scenarioCounter + 13);
+        const s2 = this._lcg(s);
+        const clamped = Math.max(0, Math.min(1, intensity));
+        const scenarioId = this._makeScenarioId('quorum_loss');
+        const dropped = Math.floor(clamped * ((s2 >>> 0) % 10 + 1));
+        const result = {
+            scenarioId,
+            type: 'quorum_loss',
+            affectedNodes: [],
+            messagesDropped: dropped,
+            messagesDuplicated: 0,
+            partitionsCreated: clamped > 0.5 ? 1 : 0,
+            recoveryTriggered: clamped < 0.5,
+            deterministicSeed: s,
+        };
+        this._activeScenarios.set(scenarioId, result);
+        return result;
+    }
+    randomizeDeliveryOrder(seed) {
+        // Records that delivery order has been randomized with this seed;
+        // actual reordering is handled by DeliveryScheduler.
+        const scenarioId = this._makeScenarioId('delayed_delivery');
+        const result = {
+            scenarioId,
+            type: 'delayed_delivery',
+            affectedNodes: [],
+            messagesDropped: 0,
+            messagesDuplicated: 0,
+            partitionsCreated: 0,
+            recoveryTriggered: false,
+            deterministicSeed: seed,
+        };
+        this._activeScenarios.set(scenarioId, result);
+    }
+    injectSplitBrain(groupA, groupB, seed) {
+        const s = seed ?? this._lcg(this._scenarioCounter + 31);
+        const s2 = this._lcg(s);
+        const scenarioId = this._makeScenarioId('split_brain');
+        const result = {
+            scenarioId,
+            type: 'split_brain',
+            affectedNodes: [...groupA, ...groupB],
+            messagesDropped: (s2 >>> 0) % (groupA.length + groupB.length + 1),
+            messagesDuplicated: (this._lcg(s2) >>> 0) % 3,
+            partitionsCreated: 2,
+            recoveryTriggered: false,
+            deterministicSeed: s,
+        };
+        this._activeScenarios.set(scenarioId, result);
+        return result;
     }
     _shouldAbort(health) {
         const t = this._policy.autoAbortThresholds;

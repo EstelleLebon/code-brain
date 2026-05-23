@@ -70,6 +70,18 @@ class FaultInjector {
         this._seed = seed;
         this._rngState = seed;
     }
+    _networkFaults = [];
+    injectNetworkFault(type, nodeId, probability, seed) {
+        const resolvedSeed = seed ?? (this._seed !== undefined ? this._rngState : 0);
+        this._networkFaults.push({ type, nodeId, probability: Math.max(0, Math.min(1, probability)), seed: resolvedSeed });
+    }
+    getInjectedFaults() {
+        return [...this._networkFaults];
+    }
+    clearFaults() {
+        this._networkFaults = [];
+        this.clearAll();
+    }
 }
 exports.FaultInjector = FaultInjector;
 //# sourceMappingURL=FaultInjection.js.map

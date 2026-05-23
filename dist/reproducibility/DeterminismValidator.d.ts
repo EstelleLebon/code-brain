@@ -23,5 +23,31 @@ export declare class DeterminismValidator {
     validateSnapshots(executionId: string): ValidationResult;
     validateDeterminism(executionId: string): DeterminismReport;
     reset(executionId?: string): void;
+    validateDistributedEventOrdering(events: Array<{
+        logicalClock: number;
+        timestamp: number;
+        nodeId: string;
+        eventId: string;
+    }>): boolean;
+    validateConsensusDeterminism(runA: Array<{
+        round: number;
+        outcome: string;
+    }>, runB: Array<{
+        round: number;
+        outcome: string;
+    }>): boolean;
+    validatePartitionReplayStability(runA: Array<{
+        eventId: string;
+        eventType: string;
+    }>, runB: Array<{
+        eventId: string;
+        eventType: string;
+    }>): boolean;
+    validateMemoryReplicationConvergence(entries: Array<{
+        key: string;
+        value: unknown;
+        nodeId: string;
+        version: number;
+    }>): boolean;
 }
 //# sourceMappingURL=DeterminismValidator.d.ts.map

@@ -42,6 +42,25 @@ const StabilityAnalyzer_js_1 = require("../reliability/StabilityAnalyzer.js");
 const RecoveryEvaluator_js_1 = require("../reliability/RecoveryEvaluator.js");
 const ChaosEngine_js_1 = require("../chaos-engineering/ChaosEngine.js");
 const DeterminismValidator_js_1 = require("../reproducibility/DeterminismValidator.js");
+const DistributedEventBus_js_1 = require("../distributed/DistributedEventBus.js");
+const CognitiveNode_js_1 = require("../distributed/CognitiveNode.js");
+const NodeRegistry_js_1 = require("../distributed/NodeRegistry.js");
+const DistributedPlanner_js_1 = require("../distributed-planning/DistributedPlanner.js");
+const ConsensusEngine_js_1 = require("../distributed-planning/ConsensusEngine.js");
+const DistributedExecutor_js_1 = require("../distributed-execution/DistributedExecutor.js");
+const MemoryReplication_js_1 = require("../distributed-memory/MemoryReplication.js");
+const NetworkPartitionSimulator_js_1 = require("../network-simulation/NetworkPartitionSimulator.js");
+const SplitBrainDetector_js_1 = require("../distributed-reliability/SplitBrainDetector.js");
+const DistributedReliabilityMetrics_js_1 = require("../distributed-reliability/DistributedReliabilityMetrics.js");
+const CrossNodeReplayEngine_js_1 = require("../distributed-replay/CrossNodeReplayEngine.js");
+const ReplayConsistencyValidator_js_1 = require("../distributed-replay/ReplayConsistencyValidator.js");
+const DistributedCognitiveLoop_js_1 = require("../distributed-cognition/DistributedCognitiveLoop.js");
+const ClusterTrustManager_js_1 = require("../distributed-cognition/ClusterTrustManager.js");
+const ConsensusHealthMonitor_js_1 = require("../distributed-cognition/ConsensusHealthMonitor.js");
+const DistributedRecoveryCoordinator_js_1 = require("../distributed-cognition/DistributedRecoveryCoordinator.js");
+const MemoryReconciliation_js_1 = require("../distributed-memory/MemoryReconciliation.js");
+const DistributedExecutionRuntime_js_1 = require("../distributed-cognition/DistributedExecutionRuntime.js");
+const AdaptiveCognitiveLoop_js_1 = require("../distributed-cognition/AdaptiveCognitiveLoop.js");
 class CodeBrain {
     db;
     embedder;
@@ -87,6 +106,20 @@ class CodeBrain {
         this.episodicMemory = new EpisodicMemory_js_1.EpisodicMemory();
         this.semanticMemory = new SemanticMemory_js_1.SemanticMemory();
         this.proceduralMemory = new ProceduralMemory_js_1.ProceduralMemory();
+        // v5.5 — Cross-Node Cognitive Replay & Deterministic Recovery
+        this.clusterTrustManager = new ClusterTrustManager_js_1.ClusterTrustManager(this.splitBrainDetector);
+        this.consensusHealthMonitor = new ConsensusHealthMonitor_js_1.ConsensusHealthMonitor();
+        this.distributedRecoveryCoordinator = new DistributedRecoveryCoordinator_js_1.DistributedRecoveryCoordinator();
+        this.distributedLoop = new DistributedCognitiveLoop_js_1.DistributedCognitiveLoop(this.clusterTrustManager, this.consensusHealthMonitor, this.distributedRecoveryCoordinator);
+        this.reconciliationEngine = new MemoryReconciliation_js_1.MemoryReconciliation();
+        // v6.0 — Decoupled Cognitive Architecture
+        this.distributedRuntime = new DistributedExecutionRuntime_js_1.DistributedExecutionRuntime({
+            clusterTrust: this.clusterTrustManager,
+            healthMonitor: this.consensusHealthMonitor,
+            recoveryCoordinator: this.distributedRecoveryCoordinator,
+            splitBrainDetector: this.splitBrainDetector,
+        });
+        this.adaptiveLoop = new AdaptiveCognitiveLoop_js_1.AdaptiveCognitiveLoop(this.distributedRuntime);
         // Load existing edges into graph
         this.loadGraphFromDB();
     }
@@ -315,6 +348,103 @@ class CodeBrain {
     }
     getStabilityReport() {
         return this.stabilityAnalyzer.analyze();
+    }
+    // ── v5.0: Distributed Cognitive Orchestration ───────────────────────────────
+    distributedBus = new DistributedEventBus_js_1.DistributedEventBus();
+    nodeRegistry = new NodeRegistry_js_1.NodeRegistry();
+    distributedPlanner = new DistributedPlanner_js_1.DistributedPlanner(this.nodeRegistry);
+    consensusEngine = new ConsensusEngine_js_1.ConsensusEngine(this.distributedBus);
+    distributedExecutor = new DistributedExecutor_js_1.DistributedExecutor(this.nodeRegistry, this.distributedPlanner, this.distributedBus, this.consensusEngine);
+    memoryReplication = new MemoryReplication_js_1.MemoryReplication(this.distributedBus);
+    networkSimulator = new NetworkPartitionSimulator_js_1.NetworkPartitionSimulator(this.distributedBus, this.nodeRegistry);
+    splitBrainDetector = new SplitBrainDetector_js_1.SplitBrainDetector(this.distributedBus);
+    distributedReliabilityMetrics = new DistributedReliabilityMetrics_js_1.DistributedReliabilityMetrics();
+    // v5.5: Cross-Node Cognitive Replay & Deterministic Recovery
+    clusterTrustManager;
+    consensusHealthMonitor;
+    distributedRecoveryCoordinator;
+    distributedLoop;
+    reconciliationEngine;
+    // v6.0: Decoupled Cognitive Architecture
+    distributedRuntime;
+    adaptiveLoop;
+    createNode(nodeId, capabilities) {
+        const caps = {
+            canPlan: true,
+            canExecute: true,
+            canReplicate: true,
+            canVote: true,
+            maxConcurrentGoals: 5,
+            supportedOperationTypes: ['default'],
+            ...capabilities,
+        };
+        return new CognitiveNode_js_1.CognitiveNode({ nodeId, capabilities: caps, bus: this.distributedBus });
+    }
+    registerNode(node) {
+        this.nodeRegistry.register(node);
+        this.distributedBus.publish({ type: 'node_joined', nodeId: node.nodeId }, node.nodeId);
+    }
+    executeDistributedGoal(goal, plan) {
+        return this.distributedExecutor.executeDistributedGoal(goal, plan);
+    }
+    simulatePartition(nodeId) {
+        return this.networkSimulator.partitionNode(nodeId);
+    }
+    runConsensusVote(proposal) {
+        this.consensusEngine.propose(proposal);
+    }
+    replicateMemory(entry, targetNodeId) {
+        this.memoryReplication.replicate(entry, targetNodeId);
+    }
+    // v5.5: Cross-Node Cognitive Replay & Deterministic Recovery
+    get crossNodeReplayEngine() {
+        return new CrossNodeReplayEngine_js_1.CrossNodeReplayEngine(new Map());
+    }
+    replayDistributedExecution(executionId, eventsByNode) {
+        const engine = new CrossNodeReplayEngine_js_1.CrossNodeReplayEngine(eventsByNode);
+        return engine.replayExecution(executionId);
+    }
+    validateDistributedDeterminism(executionId, eventsByNode) {
+        const engine = new CrossNodeReplayEngine_js_1.CrossNodeReplayEngine(eventsByNode);
+        const validator = new ReplayConsistencyValidator_js_1.ReplayConsistencyValidator(engine);
+        return validator.validate(executionId);
+    }
+    injectNetworkPartition(nodeIds, seed) {
+        return this.chaosEngine.injectPartition(nodeIds, seed);
+    }
+    healNetworkPartition(partitionId) {
+        this.chaosEngine.healPartition(partitionId);
+    }
+    triggerClusterRecovery(reason) {
+        return this.distributedRecoveryCoordinator.triggerGlobalRollback(reason);
+    }
+    reconcileClusterMemory(entriesByKey) {
+        return this.reconciliationEngine.reconcileAll(entriesByKey, 'contradiction_aware');
+    }
+    getClusterHealth() {
+        return {
+            globalTrust: this.clusterTrustManager.getGlobalClusterTrust(),
+            consensusHealth: this.consensusHealthMonitor.computeOverallHealth(),
+            anomalies: this.consensusHealthMonitor.detectAnomalies(),
+            activeRecoveryPlans: this.distributedRecoveryCoordinator.getActivePlans().length,
+        };
+    }
+    // ── v6.0: Decoupled Cognitive Architecture ──────────────────────────────────
+    /** Run one adaptive cognitive cycle across the given node IDs. */
+    runAdaptiveCycle(nodeIds) {
+        return this.adaptiveLoop.runCycle(nodeIds);
+    }
+    /** Get a unified cluster health snapshot from the runtime layer. */
+    getRuntimeClusterHealth() {
+        return this.distributedRuntime.getClusterHealth();
+    }
+    /** Recover a specific node via the runtime (no replay or clock details exposed). */
+    recoverDistributedNode(nodeId, reason) {
+        return this.distributedRuntime.recoverNode(nodeId, reason);
+    }
+    /** Synchronize cluster state (reconciliation + rebalance) via the runtime. */
+    synchronizeDistributedCluster(nodeIds) {
+        this.distributedRuntime.synchronizeCluster(nodeIds);
     }
     close() {
         this.chaosEngine.stop();
